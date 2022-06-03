@@ -1,0 +1,28 @@
+for (d=99; d>=0;) {
+  if (d > 0)
+    write(d);
+  else
+    write("No more");
+  write(" bottle");
+  if (d != 1) write("s");
+  write(" of beer on the wall, ");
+  if (d > 0)
+    write(d);
+  else
+    write("no more");
+  write(" bottle");
+  if (d != 1) write("s");
+  writeln(" of beer.");
+  if (d > 0)
+    write("Take one down and pass it around, ");
+  else
+    write("Go to the store and buy some more, ");
+  d--;
+  if (d != 0)
+    write(d % 100);
+  else
+    write("no more");
+  write(" bottle");
+  if (d != 1) write("s");
+  writeln(" of beer on the wall.\n");
+}

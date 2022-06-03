@@ -1,0 +1,17 @@
+// Printing
+writeln("Hello, World!");
+
+// Looping
+for (i = 0; i < 10; i++)
+  writeln(i);
+
+// Accessing arguments
+for (;;) {
+  c = get;
+  if (c > 0)
+    put(c);
+  else if (c < 0)
+    break;
+  else
+    writeln();
+}

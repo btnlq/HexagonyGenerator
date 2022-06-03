@@ -1,0 +1,8 @@
+a = 0;
+b = 1;
+while (a < 10^6) {
+  writeln(a);
+  c = b;
+  b += a;
+  a = c;
+}

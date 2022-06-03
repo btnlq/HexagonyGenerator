@@ -1,0 +1,23 @@
+for (;;) {
+  hash = 0;
+  for (;;) {
+    c = get;
+    if (c < 0) exit;
+    if (c < 1) break;
+    hash *= 4;
+    hash += c;
+  }
+  hash %= 66;
+  hash %= 61;
+  hash %= 35;
+  arr = 32381618937505121113846926118597407387404556835418454;
+  while (hash > 0) {
+    arr /= 67;
+	hash--;
+  }
+  arr %= 67;
+  if (arr == 1) arr = -385;
+  else if (arr == 3) arr = 784;
+  put(240, 159, 152 + arr / 64, 128 + arr % 64);
+  writeln();
+}
