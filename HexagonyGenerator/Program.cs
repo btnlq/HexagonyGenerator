@@ -7,9 +7,19 @@ class Program
 {
     static void Main()
     {
-        var tester = new Tester(System.IO.Path.GetFullPath("../../../Tests"));
-        // tester.Test("Example", Tester.Generate.Minified, RunTarget.Hexagony);
-        tester.TestAll(Tester.Generate.None, RunTarget.Hexagony);
+        // Test("Example").GenerateMinified().Run(RunTarget.Hexagony);
+        foreach (var test in AllTests())
+            test.Run(RunTarget.Hexagony);
+    }
+
+    private static readonly string _testRoot = System.IO.Path.GetFullPath("../../../Tests");
+
+    private static Test Test(string directory) => new(System.IO.Path.Combine(_testRoot, directory));
+
+    private static IEnumerable<Test> AllTests()
+    {
+        foreach (var directory in System.IO.Directory.GetDirectories(_testRoot))
+            yield return new Test(directory);
     }
 }
 

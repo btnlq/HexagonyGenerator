@@ -1,6 +1,6 @@
 Generates a Hexagony program from another program written in a simple language.
 Generated programs can be very large and slow.
-Use `Runner` or `Tester` class for generation.
+Use `Runner` or `Test` class for generation.
 
 ### Language syntax
 
