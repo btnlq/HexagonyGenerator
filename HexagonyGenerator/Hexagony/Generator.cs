@@ -20,7 +20,6 @@ using Bytecode;
 class Generator
 {
     private readonly Hexagon hxg = new();
-    private readonly List<Procedure> procedures = new();
 
     private Generator() { }
 
@@ -33,10 +32,8 @@ class Generator
 
     private void WriteProgram(Program program)
     {
-        IterateProcedures(program.Start);
-
-        for (int index = 0; index < procedures.Count; index++)
-            WriteProcedure(index);
+        foreach (var procedure in program.Procedures)
+            WriteProcedure(procedure);
 
         hxg[0, 0] = '/';
         hxg[0, 1] = ')';
@@ -46,26 +43,6 @@ class Generator
         int size = hxg.Size;
         hxg[2 * size, -size] = '/';
         hxg[2 * size, -size + 1] = '\\';
-    }
-
-    private void IterateProcedures(Procedure procedure)
-    {
-        if (procedure == Procedure.Exit || procedures.Contains(procedure))
-            return;
-        procedures.Add(procedure);
-
-        switch (procedure.Continuation)
-        {
-            case Continuation continuation:
-                IterateProcedures(continuation.Next);
-                break;
-            case ConditionalContinuation continuation:
-                IterateProcedures(continuation.TrueBranch);
-                IterateProcedures(continuation.FalseBranch);
-                break;
-            default:
-                throw new UnexpectedDefaultException();
-        }
     }
 
     /*
@@ -123,13 +100,13 @@ class Generator
         NegativeFooter = new("./~", ".>~", "_~"),
         NonzeroFooter = new("./~.<$", ".>~$>", ">.._");
 
-    private void WriteProcedure(int procedureIndex)
+    private void WriteProcedure(Procedure procedure)
     {
-        int mainY = 3 * procedureIndex + 1;
+        int mainY = 3 * procedure.Index + 1;
 
-        if (procedureIndex > 0) hxg[0, mainY - 2] = '_';
+        if (procedure.Index > 0) hxg[0, mainY - 2] = '_';
 
-        GenerateCommands(procedures[procedureIndex], out var body, out var footer);
+        GenerateCommands(procedure, out var body, out var footer);
 
         var lastX = Enumerable.Range(0, 3).Max(i =>
         {
@@ -149,7 +126,7 @@ class Generator
         }
     }
 
-    private void GenerateCommands(Procedure procedure, out ColumnsTriple body, out ColumnsTriple footer)
+    private static void GenerateCommands(Procedure procedure, out ColumnsTriple body, out ColumnsTriple footer)
     {
         var main = new Commands();
         var memory = new Memory(main);
@@ -161,7 +138,7 @@ class Generator
             Commands cmds = new();
             if (procedure != Procedure.Exit)
             {
-                new Memory(cmds, memory).SetIp(procedures.IndexOf(procedure) - 1);
+                new Memory(cmds, memory).SetIp(procedure.Index - 1);
                 cmds.Reverse();
             }
             else

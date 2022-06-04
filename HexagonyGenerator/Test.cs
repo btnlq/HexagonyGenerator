@@ -23,17 +23,24 @@ class Test
         _runner = new Runner(FilePath("code.txt"));
     }
 
-    /// <summary>Generate hexagony program with minified layout to file "hexagony.txt".</summary>
+    /// <summary>Write minified layout of the hexagony program to file "hexagony.txt".</summary>
     public Test GenerateMinified()
     {
         _runner.Generate(FilePath("hexagony.txt"), false);
         return this;
     }
 
-    /// <summary>Generate hexagony program with pretty layout to file "hexagony_pretty.txt".</summary>
+    /// <summary>Write pretty layout of the hexagony program to file "hexagony_pretty.txt".</summary>
     public Test GeneratePretty()
     {
         _runner.Generate(FilePath("hexagony_pretty.txt"), true);
+        return this;
+    }
+
+    /// <summary>Write text representation of the bytecode to file "bytecode.txt" (useful for debugging).</summary>
+    public Test GenerateBytecode()
+    {
+        _runner.WriteBytecode(FilePath("bytecode.txt"));
         return this;
     }
 

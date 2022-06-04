@@ -84,8 +84,7 @@ class Compiler
         VariableAllocator.Allocate(program);
         var start = new Procedure();
         CompileBlock(program.Block, start, Procedure.Exit);
-        Program procedureProgram = new(start);
-        ContinuationsOptimizer.Optimize(procedureProgram);
+        Program procedureProgram = ContinuationsOptimizer.Optimize(start);
         return procedureProgram;
     }
 }

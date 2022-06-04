@@ -2,10 +2,11 @@
 
 class Program
 {
-    public Procedure Start;
+    public readonly List<Procedure> Procedures;
+    public Procedure Start => Procedures[0];
 
-    public Program(Procedure start)
+    public Program(List<Procedure> procedures)
     {
-        Start = start;
+        Procedures = procedures;
     }
 }

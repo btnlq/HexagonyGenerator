@@ -32,15 +32,20 @@ static class ContinuationsOptimizer
         return next != procedure;
     }
 
-    private static void OptimizeContinuations(Procedure start)
+    private static List<Procedure> OptimizeContinuations(Procedure start)
     {
-        List<Procedure> toOptimize = new() { start };
+        List<Procedure> toOptimize = new();
 
         void Add(Procedure procedure)
         {
-            if (procedure != Procedure.Exit && !toOptimize.Contains(procedure))
+            if (procedure != Procedure.Exit && procedure.Index == Procedure.NotIndexed)
+            {
+                procedure.Index = toOptimize.Count;
                 toOptimize.Add(procedure);
+            }
         }
+
+        Add(start);
 
         for (int i = 0; i < toOptimize.Count; i++)
         {
@@ -64,7 +69,7 @@ static class ContinuationsOptimizer
 
             if (SkipEmpty(conditionalContinuation.TrueBranch, out var trueBranch) |
                 SkipEmpty(conditionalContinuation.FalseBranch, out var falseBranch))
-                procedure.Continuation =
+                procedure.Continuation = conditionalContinuation =
                     new ConditionalContinuation(
                         conditionalContinuation.ConditionVar, conditionalContinuation.Type, trueBranch, falseBranch);
             Add(conditionalContinuation.TrueBranch);
@@ -72,14 +77,18 @@ static class ContinuationsOptimizer
 
             // TODO: check if TrueBranch == FalseBranch
         }
+
+        if (toOptimize.Count == 0)
+            toOptimize.Add(Procedure.Exit);
+        return toOptimize;
     }
 
-    private static void OptimizeStart(Program program)
+    private static Procedure OptimizeStart(Procedure start)
     {
-        while (program.Start.IsEmpty())
+        while (start.IsEmpty())
         {
-            Visitor.Visit(program.Start.Continuation!);
-            program.Start = program.Start.Continuation switch
+            Visitor.Visit(start.Continuation!);
+            start = start.Continuation switch
             {
                 Continuation continuation => continuation.Next,
                 ConditionalContinuation continuation => continuation.FalseBranch,
@@ -87,13 +96,9 @@ static class ContinuationsOptimizer
             };
         }
         Visitor.Clear();
+        return start;
     }
 
-    public static void Optimize(Program program)
-    {
-        OptimizeStart(program);
-        if (program.Start == Procedure.Exit)
-            return;
-        OptimizeContinuations(program.Start);
-    }
+    public static Program Optimize(Procedure start)
+        => new(OptimizeContinuations(OptimizeStart(start)));
 }

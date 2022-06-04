@@ -37,10 +37,20 @@ class Runner
     /// <param name="pretty">Generate pretty hexagony code if true, minified otherwise.</param>
     public void Generate(string outputFilePath, bool pretty)
     {
-        System.Console.WriteLine($"Generating {outputFilePath}");
+        System.Console.WriteLine($"Generating {(pretty ? "pretty" : "minified")} hexagony: {outputFilePath}");
         var hexagony = Hexagon.ToText(pretty);
         File.WriteAllText(outputFilePath, hexagony);
+    }
 
+    /// <summary>
+    /// Write text representation of the bytecode to the file.
+    /// </summary>
+    /// <param name="outputFilePath">The file to write the bytecode.</param>
+    public void WriteBytecode(string outputFilePath)
+    {
+        System.Console.WriteLine($"Generating bytecode: {outputFilePath}");
+        var text = Bytecode.Formatter.Formatter.Format(_bytecode);
+        File.WriteAllText(outputFilePath, text);
     }
 
     /// <summary>
