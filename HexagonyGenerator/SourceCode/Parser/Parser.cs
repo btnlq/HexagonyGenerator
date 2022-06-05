@@ -28,9 +28,9 @@ class Parser
         return new(block);
     }
 
-    private Block ParseBlock(string? blockName = null, bool topLevel = false, IEnumerable<IStatement>? onContinue = null)
+    private Block ParseBlock(string? blockName = null, bool topLevel = false, IsLoop? isLoop = null)
     {
-        Block block = new(onContinue);
+        Block block = new(isLoop);
         _stack.PushFrame(block, blockName);
 
         if (topLevel || TryRead(TokenType.LBrace) != null)
@@ -76,12 +76,12 @@ class Parser
         Block block = TryRead(TokenType.Identifier, out Token blockNameToken)
             ? _stack.GetBlock(blockNameToken.Text) ??
                 throw new ParserException($"No enclosing loops labeled '{blockNameToken.Text}'", blockNameToken)
-            : _stack.GetTopNamedBlock() ??
+            : _stack.GetTopLoop() ??
                 throw new ParserException($"No enclosing loop", keywordToken);
         Read(TokenType.Semicolon);
 
         Goto @goto = new(type, block);
-        return type == GotoType.Continue && block.OnContinue != null ? block.OnContinue.Append(@goto) : @goto;
+        return type == GotoType.Continue && block.IsLoop?.OnContinue != null ? block.IsLoop.OnContinue.Append(@goto) : @goto;
     }
 
     private Exit ParseExit()
@@ -90,7 +90,40 @@ class Parser
         return new();
     }
 
-    private Condition ParseConditionExpression()
+    private IBooleanExpression ParseOrExpression()
+    {
+        var expression = ParseAndExpression();
+
+        while (TryRead(TokenType.BooleanOperator, "||") != null)
+            expression = BooleanExpression.Or(expression, ParseAndExpression());
+
+        return expression;
+    }
+
+    private IBooleanExpression ParseAndExpression()
+    {
+        var expression = ParseNotExpression();
+
+        while (TryRead(TokenType.BooleanOperator, "&&") != null)
+            expression = BooleanExpression.And(expression, ParseNotExpression());
+
+        return expression;
+    }
+
+    private IBooleanExpression ParseNotExpression()
+    {
+        if (TryRead(TokenType.BooleanOperator, "!") != null)
+        {
+            Read(TokenType.LParen);
+            var expression = ParseOrExpression();
+            Read(TokenType.RParen);
+            return BooleanExpression.Not(expression);
+        }
+
+        return BooleanExpression.Comparison(ParseComparison());
+    }
+
+    private Comparison ParseComparison()
     {
         var left = ParseArithmeticSum();
         var opText = Read(TokenType.ComparisonOperator).Text;
@@ -107,29 +140,29 @@ class Parser
             _ => throw new UnexpectedDefaultException(),
         };
 
-        return new Condition(left, op, right);
+        return new Comparison(left, op, right);
     }
 
     private IEnumerable<IStatement> ParseConditional()
     {
         Read(TokenType.LParen);
-        var condition = ParseConditionExpression();
+        var condition = ParseOrExpression();
         Read(TokenType.RParen);
-        var firstBlock = ParseBlock();
+        var trueBlock = ParseBlock();
         bool hasElse = TryRead(TokenType.Keyword, Keyword.Else) != null;
-        var secondBlock = hasElse ? ParseBlock() : null;
+        var falseBlock = hasElse ? ParseBlock() : null;
 
-        return Desugar.Conditional(condition, firstBlock, secondBlock);
+        return condition.ToStatement(trueBlock, falseBlock);
     }
 
     private IEnumerable<IStatement> ParseWhile()
     {
         var blockName = TryRead(TokenType.Identifier)?.Text ?? "";
         Read(TokenType.LParen);
-        var condition = ParseConditionExpression();
+        var condition = ParseOrExpression();
         Read(TokenType.RParen);
-        var block = ParseBlock(blockName);
-        return Desugar.For(null, condition, null, block);
+        var block = ParseBlock(blockName, isLoop: new());
+        return Desugar.While(condition, block);
     }
 
     private T? ParseOptional<T>(System.Func<T> parser, TokenType last) where T : class
@@ -147,12 +180,12 @@ class Parser
 
     private IEnumerable<IStatement> ParseFor()
     {
-        var blockName = TryRead(TokenType.Identifier)?.Text ?? "";
+        var blockName = TryRead(TokenType.Identifier)?.Text;
         Read(TokenType.LParen);
         var initializer = ParseOptional(ParseAssignmentExpression, TokenType.Semicolon);
-        var condition = ParseOptional(ParseConditionExpression, TokenType.Semicolon);
+        var condition = ParseOptional(ParseOrExpression, TokenType.Semicolon);
         var iterator = ParseOptional(ParseAssignmentExpression, TokenType.RParen);
-        var block = ParseBlock(blockName, onContinue: iterator);
+        var block = ParseBlock(blockName, isLoop: new(iterator));
         return Desugar.For(initializer, condition, iterator, block);
     }
 

@@ -1,10 +1,10 @@
 ﻿namespace HexagonyGenerator.SourceCode;
 
-class Loop : IStatement
+class BlockStatement : IStatement
 {
     public readonly Block Block;
 
-    public Loop(Block block)
+    public BlockStatement(Block block)
     {
         Block = block;
     }

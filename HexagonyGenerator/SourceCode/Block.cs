@@ -1,15 +1,28 @@
 ﻿namespace HexagonyGenerator.SourceCode;
 
-class Block : IEnumerable<IStatement>
+// If a block has non-null IsLoop:
+// - It can be continued.
+// - It has an implicit `continue` at the end.
+class IsLoop
 {
-    private readonly List<IStatement> _statements = new();
-    public readonly IEnumerable<IStatement>? OnContinue; // action to be executed on `continue this;`
+    public readonly IEnumerable<IStatement>? OnContinue; // Action to be executed before `continue`.
 
-    public Block(IEnumerable<IStatement>? onContinue = null)
+    public IsLoop(IEnumerable<IStatement>? onContinue = null)
     {
         OnContinue = onContinue;
     }
-    
+}
+
+class Block : IEnumerable<IStatement>
+{
+    private readonly List<IStatement> _statements = new();
+    public readonly IsLoop? IsLoop;
+
+    public Block(IsLoop? isLoop = null)
+    {
+        IsLoop = isLoop;
+    }
+
     public void Add(IStatement statement)
     {
         _statements.Add(statement);

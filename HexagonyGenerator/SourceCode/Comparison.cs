@@ -1,12 +1,12 @@
 ﻿namespace HexagonyGenerator.SourceCode;
 
-class Condition
+class Comparison
 {
     public readonly IArithmeticExpression Left;
     public readonly IArithmeticExpression Right;
     public readonly ComparisonOp Op;
 
-    public Condition(IArithmeticExpression left, ComparisonOp op, IArithmeticExpression right)
+    public Comparison(IArithmeticExpression left, ComparisonOp op, IArithmeticExpression right)
     {
         Left = left;
         Right = right;

@@ -74,8 +74,12 @@ class Lexer
                     type = reader.Read('=') ? TokenType.ComparisonOperator : TokenType.Assignment;
                     break;
                 case '!':
-                    if (reader.Read('='))
-                        type = TokenType.ComparisonOperator;
+                    type = reader.Read('=') ? TokenType.ComparisonOperator : TokenType.BooleanOperator;
+                    break;
+                case '&':
+                case '|':
+                    if (reader.Read((char)current.Value))
+                        type = TokenType.BooleanOperator;
                     break;
                 case '/':
                     if (reader.Read('/')) // line comment

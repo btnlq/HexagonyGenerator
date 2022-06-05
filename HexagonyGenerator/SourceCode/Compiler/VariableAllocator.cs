@@ -61,13 +61,14 @@ class VariableAllocator
                     _index++;
                     break;
                 }
-                case Loop loop:
+                case BlockStatement blockStmt:
                 {
                     int start = _index;
-                    ScanBlock(loop.Block);
-                    foreach (var scope in _scopes)
-                        if (scope.Start < start && scope.End >= start)
-                            scope.End = _index;
+                    ScanBlock(blockStmt.Block);
+                    if (blockStmt.Block.IsLoop != null)
+                        foreach (var scope in _scopes)
+                            if (scope.Start < start && scope.End >= start)
+                                scope.End = _index;
                     break;
                 }
                 case Conditional conditional:

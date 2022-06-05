@@ -37,12 +37,14 @@ put(226, 133, 159+x); // write `x` in roman numerals (if 1 ≤ x ≤ 12)
   Control flow
 */
 
-if (x > 'z')
-  write("x is bigger than 122");
-else if (x < 'a')
-  write("x is smaller than 97");
+if (x >= '0' && x <= '9')
+  write("x is digit");
+else if (x >= 'a' && x <= 'z' || x >= 'A' && x <= 'Z')
+  write("x is letter");
+else if (x < 32 && !(x == ' ' || x == '\t' || x == '\n'))
+  write("x is binary");
 else {
-  write("x is letter: ");
+  write("x is something else: ");
   put(x);
 }
 

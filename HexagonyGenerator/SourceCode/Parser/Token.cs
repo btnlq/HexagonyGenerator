@@ -16,6 +16,7 @@ enum TokenType
     Character,
     String,
     ArithmeticOperator,
+    BooleanOperator,
     Assignment,
     IncDec,
     ComparisonOperator,

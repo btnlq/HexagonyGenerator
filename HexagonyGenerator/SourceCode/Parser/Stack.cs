@@ -54,10 +54,10 @@ class Stack
         return null;
     }
 
-    public Block? GetTopNamedBlock()
+    public Block? GetTopLoop()
     {
         foreach (var frame in _frames)
-            if (frame.Name != null)
+            if (frame.Block.IsLoop != null)
                 return frame.Block;
 
         return null;

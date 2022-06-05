@@ -22,17 +22,17 @@ class Compiler
                     current.Actions.Add(action.Action);
                     break;
                 }
-                case Loop loop:
+                case BlockStatement blockStmt:
                 {
-                    var loopCurrent = new Procedure();
-                    var loopNext = new Procedure();
+                    var blockCurrent = new Procedure();
+                    var blockNext = new Procedure();
 
-                    _pointers.Add(loop.Block, (loopCurrent, loopNext));
-                    CompileBlock(loop.Block, loopCurrent, loopCurrent);
-                    _pointers.Remove(loop.Block);
+                    _pointers.Add(blockStmt.Block, (blockCurrent, blockNext));
+                    CompileBlock(blockStmt.Block, blockCurrent, blockStmt.Block.IsLoop != null ? blockCurrent : blockNext);
+                    _pointers.Remove(blockStmt.Block);
                     
-                    current.Continuation = new Continuation(loopCurrent);
-                    current = loopNext;
+                    current.Continuation = new Continuation(blockCurrent);
+                    current = blockNext;
                     break;
                 }
                 case Conditional conditional:

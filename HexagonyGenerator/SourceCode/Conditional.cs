@@ -9,7 +9,7 @@ class Conditional : IStatement
     public readonly Block? TrueBranch;
     public readonly Block? FalseBranch;
 
-    public Conditional(Variable variable, ComparisonOp op, Block? firstBlock, Block? secondBlock)
+    public Conditional(Variable variable, ComparisonOp op, Block? trueBlock, Block? falseBlock)
     {
         Variable = variable;
         (Type, bool reversed) = op switch
@@ -22,7 +22,7 @@ class Conditional : IStatement
             ComparisonOp.Eq => (ConditionType.Nonzero, true),
             _ => throw new UnexpectedDefaultException(),
         };
-        TrueBranch = reversed ? secondBlock : firstBlock;
-        FalseBranch = reversed ? firstBlock : secondBlock;
+        TrueBranch = reversed ? falseBlock : trueBlock;
+        FalseBranch = reversed ? trueBlock : falseBlock;
     }
 }
