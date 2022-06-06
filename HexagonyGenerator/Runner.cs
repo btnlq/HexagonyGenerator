@@ -6,6 +6,8 @@ enum RunTarget
 {
     /// <summary>Run internal bytecode representation (useful for debugging).</summary>
     Bytecode,
+    /// <summary>Run internal bytecode representation and reorder procedures by number of calls.</summary>
+    BytecodeToOptimize,
     /// <summary>Run generated hexagony program.</summary>
     Hexagony
 }
@@ -39,6 +41,8 @@ class Runner
     {
         System.Console.WriteLine($"Generating {(pretty ? "pretty" : "minified")} hexagony: {outputFilePath}");
         var hexagony = Hexagon.ToText(pretty);
+        Hexagon.Stats(out int bytes, out int chars, out int operators);
+        System.Console.WriteLine($"Side length: {Hexagon.Size + 1:N0}, bytes: {bytes:N0}, chars: {chars:N0}, operators: {operators:N0}");
         File.WriteAllText(outputFilePath, hexagony);
     }
 
@@ -71,17 +75,21 @@ class Runner
         var reader = GetReader(inputFilePath);
 
         System.Console.WriteLine(runTarget == RunTarget.Hexagony ? "Executing hexagony" : "Executing bytecode");
+        bool optimize = runTarget == RunTarget.BytecodeToOptimize;
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         string output = runTarget == RunTarget.Hexagony ?
-            Hexagony.Interpreter.Executor.Execute(Hexagon, reader) :
-            Bytecode.Interpreter.Executor.Execute(_bytecode, reader);
+            Hexagony.Interpreter.Executor.Execute(Hexagon, reader, out int executed) :
+            Bytecode.Interpreter.Executor.Execute(_bytecode, reader, optimize, out executed);
         stopwatch.Stop();
-        System.Console.WriteLine($"Execution time: {stopwatch.Elapsed}");
+        System.Console.WriteLine($"Execution time: {stopwatch.Elapsed}, instructions executed: {executed:N0}");
 
         File.WriteAllText(outputFilePath, output);
         if (compareFilePath != null)
             Compare(outputFilePath, compareFilePath);
+
+        if (optimize)
+            _hexagon = null;
     }
 
     private static Hexagony.Interpreter.Reader GetReader(string? inputFilePath)

@@ -7,19 +7,19 @@ class Program
 {
     static void Main()
     {
-        // Test("Example").GenerateMinified().Run(RunTarget.Hexagony);
-        foreach (var test in AllTests())
-            test.Run(RunTarget.Hexagony);
-    }
-
-    private static readonly string _testRoot = System.IO.Path.GetFullPath("../../../Tests");
-
-    private static Test Test(string directory) => new(System.IO.Path.Combine(_testRoot, directory));
-
-    private static IEnumerable<Test> AllTests()
-    {
-        foreach (var directory in System.IO.Directory.GetDirectories(_testRoot))
-            yield return new Test(directory);
+        var testRoot = System.IO.Path.GetFullPath("../../../../Tests");
+        foreach (var directory in System.IO.Directory.GetDirectories(testRoot /*, "Fibonacci" */))
+        {
+            new Test(directory)
+                //.Run(RunTarget.Bytecode)
+                .Run(RunTarget.BytecodeToOptimize)
+                .Run(RunTarget.Hexagony)
+                //.GenerateBytecode()
+                .GenerateMinified()
+                //.GeneratePretty()
+                ;
+            System.Console.WriteLine();
+        }
     }
 }
 

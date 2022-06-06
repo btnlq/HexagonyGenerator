@@ -98,4 +98,21 @@ class Hexagon
 
         return sb.ToString();
     }
+
+    public void Stats(out int bytes, out int chars, out int operators)
+    {
+        bytes = chars = 3 * Size * (Size + 1) + 1;
+        operators = 0;
+        
+        foreach (var rows in new[] { _left, _right })
+            foreach (var row in rows)
+                foreach (var cmd in row)
+                    if (cmd != Command.Nop)
+                    {
+                        operators++;
+                        bytes += new Rune(cmd).Utf8SequenceLength;
+                    }
+
+        bytes -= operators;
+    }
 }

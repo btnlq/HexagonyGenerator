@@ -12,12 +12,15 @@ class Executor
         Reader = reader;
     }
 
-    public static string Execute(Hexagon hexagon, Reader reader)
+    public static string Execute(Hexagon hexagon, Reader reader, out int executed)
     {
         var executor = new Executor(hexagon, reader);
         executor.Execute();
+        executed = executor.Executed;
         return executor.Writer.GetOutput();
     }
+
+    private int Executed = 0;
 
     private Pos Pos = Pos.Zero;
     private Dir Dir = Dir.Right;
@@ -45,6 +48,7 @@ class Executor
         while (true)
         {
             int cmd = Hexagon[Pos.X, Pos.Y];
+            Executed++;
             switch (cmd)
             {
                 // Special
