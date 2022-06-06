@@ -1,4 +1,4 @@
-Generates a Hexagony program from another program written in a simple language.
+Generates a [Hexagony](https://esolangs.org/wiki/Hexagony) program from another program written in a simple language.
 Generated programs can be very large and slow.
 Use `Runner` or `Test` class for generation.
 
@@ -13,8 +13,8 @@ Use `Runner` or `Test` class for generation.
 someVar = 12; // variables are implicitly declared by assigning a value to an unused identifier
 π = 3; // unicode variable names are supported
 x = 'a'; // x = 97;
-y = get; // read a single byte from STDIN and set `x` to its value (hexagony command `,`)
-z = read; // read an integer from STDIN and set `x` to its value (hexagony command `?`)
+y = get; // read a single byte from STDIN and set `y` to its value (hexagony command `,`)
+z = read; // read an integer from STDIN and set `z` to its value (hexagony command `?`)
 x = (x + y * z) / someVar - 44 % read; // you can write an arithmetic expression anywhere a number is expected
 x += y * z;
 x++; // increment/decrement is a statement, you can't use it inside an expression
@@ -66,7 +66,7 @@ for (;;) { // but all three parts are optional
 // You can declare another variable with the same name:
 c = read;
 if (c < 0)
-  exit; // terminates program
+  exit; // terminate program
 
 /*
   Labeled loops
@@ -75,7 +75,7 @@ if (c < 0)
 for outer_loop (i=2; i<=100; i++) { // labeled `for`
   for (j=2; j<i; j++)
     if (i%j == 0)
-      continue outer_loop; // starts a new iteration of `outer_loop`
+      continue outer_loop; // start a new iteration of `outer_loop`
   writeln(i);
 }
 ```
