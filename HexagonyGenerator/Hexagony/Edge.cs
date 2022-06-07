@@ -2,7 +2,7 @@
 
 readonly struct Edge
 {
-	public readonly int Index;
+    public readonly int Index;
 
-	public Edge(int index) { Index = index; }
+    public Edge(int index) { Index = index; }
 }

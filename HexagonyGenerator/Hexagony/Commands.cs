@@ -4,7 +4,7 @@ using System.Collections;
 
 class Commands : IEnumerable<int>
 {
-	private readonly List<int> _cmds = new();
+    private readonly List<int> _cmds = new();
 
     public int this[int index]
     {
@@ -16,7 +16,7 @@ class Commands : IEnumerable<int>
 
     public IEnumerator<int> GetEnumerator() => _cmds.GetEnumerator();
 
-	IEnumerator IEnumerable.GetEnumerator() => _cmds.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => _cmds.GetEnumerator();
 
     public void Add(int cmd) => _cmds.Add(cmd);
 

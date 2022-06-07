@@ -25,5 +25,5 @@ class Program
 
 class UnexpectedDefaultException : System.Exception
 {
-	public UnexpectedDefaultException() : base("Unreachable code") { }
+    public UnexpectedDefaultException() : base("Unreachable code") { }
 }
