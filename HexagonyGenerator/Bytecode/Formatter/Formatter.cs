@@ -5,12 +5,13 @@ class Formatter
     public static string Format(Program program) => new Formatter(program).Text;
 
     private readonly System.Text.StringBuilder _sb = new();
+    private readonly Procedure _start;
 
     private string Text => _sb.ToString();
 
     private void AppendName(Procedure procedure)
     {
-        if (procedure.Index == 0)
+        if (procedure == _start)
             _sb.Append("start");
         else if (procedure == Procedure.Exit)
             _sb.Append("exit");
@@ -80,6 +81,8 @@ class Formatter
 
     private Formatter(Program program)
     {
+        _start = program.Start;
+
         foreach (var procedure in program.Procedures)
         {
             AppendName(procedure);

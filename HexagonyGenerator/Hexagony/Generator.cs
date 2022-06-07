@@ -3,9 +3,7 @@
 using Bytecode;
 
 /*
-          / \ . . . . . . . .  (bottom)
-
-          / ) _ . . _ . . . .
+          ) \ _ . . _ . . . .
          > ~ < > ) < > ) < . .
         \ < $ . < $ . < $ . . .
        . . . _ a . _ a . _ a . .
@@ -35,14 +33,25 @@ class Generator
         foreach (var procedure in program.Procedures)
             WriteProcedure(procedure);
 
-        hxg[0, 0] = '/';
-        hxg[0, 1] = ')';
+        int start = program.Start.Index;
+        if (start < 3)
+        {
+            hxg[0, 0] = ").("[start];
+            hxg[0, 1] = '\\';
+        }
+        else
+        {
+            int y = 0;
+            foreach (char c in (start - 2).ToString())
+            {
+                hxg[0, y] = c;
+                y += y%3 + 1;
+            }
+            hxg[0, y <= 4 ? 4 : y - y%3 + 1] = '\\';
+        }
+
         hxg[1, 0] = '~';
         hxg[2, -2] = '\\';
-
-        int size = hxg.Size;
-        hxg[2 * size, -size] = '/';
-        hxg[2 * size, -size + 1] = '\\';
     }
 
     /*

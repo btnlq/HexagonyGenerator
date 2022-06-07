@@ -98,7 +98,7 @@ class Executor
                     if ('0' <= cmd && cmd <= '9')
                     {
                         int digit = cmd - '0';
-                        Value = Value * 10 + (Positive ? digit : -digit);
+                        Value = Value * 10 + (Value.Sign >= 0 ? digit : -digit);
                     }
                     else
                         Value = cmd;
@@ -120,13 +120,6 @@ class Executor
         int size = Hexagon.Size;
 
         if (x < 0 || x > 2*size || y < -size || y > size || x+y < 0 || x+y > 2*size)
-        {
-            if (x == -1 && y == 0 && Dir == 2 && Get(new(0, 0)).Sign <= 0)
-                Pos = new(2 * size, -size);
-            else if (x == 2 * size + 1 && y == -size && Dir == 4)
-                Pos = new(0, 1);
-            else
-                throw new System.NotImplementedException($"Instruction pointer is out of code grid: {Pos}. Wrapping is not implemented because not used by the generator");
-        }
+            throw new System.NotImplementedException($"Instruction pointer is out of code grid: {Pos}. Wrapping is not implemented because not used by the generator");
     }
 }

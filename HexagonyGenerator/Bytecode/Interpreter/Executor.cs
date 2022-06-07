@@ -43,11 +43,11 @@ class Executor
 
         if (optimize)
         {
-            var comparer = Comparer<Procedure>.Create((p1, p2) => calls[p2.Index].CompareTo(calls[p1.Index]));
             int length = program.Procedures.Count;
-            program.Procedures.Sort(1, length - 1, comparer);
-            for (int i = 1; i < length; i++)
-                program.Procedures[i].Index = i;
+            program.Procedures.Sort((p1, p2) => calls[p2.Index].CompareTo(calls[p1.Index]));
+            int index = 0;
+            foreach (var proc in program.Procedures)
+                proc.Index = index++;
         }
 
         return memory.GetOutput();
