@@ -40,10 +40,10 @@ class Formatter
             else if (32 <= value && value <= 126)
                 _sb.Append('\'').Append((char)value).Append('\'');
             else
-                _sb.Append(value.ToString());
+                _sb.Append(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
         else
-            _sb.Append(integer.Value.ToString());
+            _sb.Append(integer.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private void AppendSymbol(ISymbol symbol, bool asChar = false)

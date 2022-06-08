@@ -42,12 +42,12 @@ class Generator
         else
         {
             int y = 0;
-            foreach (char c in (start - 2).ToString())
+            foreach (char c in (start - 2).ToString(System.Globalization.CultureInfo.InvariantCulture))
             {
                 hxg[0, y] = c;
-                y += y%3 + 1;
+                y += y % 3 + 1;
             }
-            hxg[0, y <= 4 ? 4 : y - y%3 + 1] = '\\';
+            hxg[0, y <= 4 ? 4 : y - y % 3 + 1] = '\\';
         }
 
         hxg[1, 0] = '~';

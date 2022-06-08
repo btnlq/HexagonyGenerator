@@ -17,7 +17,7 @@ static class ValueParser
     public static Value Parse(string text)
     {
         if (text.Length < 2 || text[1] <= '9')
-            return Value.Parse(text, System.Globalization.NumberStyles.None);
+            return Value.Parse(text, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture);
 
         int mode = PrefixChars.IndexOf(text[1]) >> 1;
         int length = text.Length - 2;

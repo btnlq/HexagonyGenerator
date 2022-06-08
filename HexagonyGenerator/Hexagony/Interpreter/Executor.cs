@@ -20,16 +20,16 @@ class Executor
         return executor.Writer.GetOutput();
     }
 
-    private int Executed = 0;
+    private int Executed;
 
-    private Pos Pos = Pos.Zero;
+    private Pos Pos;
     private Dir Dir = Dir.Right;
 
     private readonly Dictionary<Pos, Value> Memory = new();
 
     private Value Get(Pos pos) => Memory.GetValueOrDefault(pos);
 
-    private Pos MemPos = Pos.Zero;
+    private Pos MemPos;
     private Dir MemDir = Dir.Right;
 
     private Value Value
@@ -92,7 +92,7 @@ class Executor
                 case '[':
                 case '#':
                 case '^':
-                    throw new System.NotImplementedException($"'{cmd}' is not implemented because not used by the generator"); 
+                    throw new System.NotImplementedException($"'{cmd}' is not implemented because not used by the generator");
 
                 default:
                     if ('0' <= cmd && cmd <= '9')
@@ -107,7 +107,7 @@ class Executor
 
             Pos += Dir;
             HandleWrapping();
-        }    
+        }
     }
 
     private static readonly Dir[] LeftArrowDirs = { 9, 4, 3, 0, 3, 2 };
@@ -119,7 +119,7 @@ class Executor
         int y = Pos.Y;
         int size = Hexagon.Size;
 
-        if (x < 0 || x > 2*size || y < -size || y > size || x+y < 0 || x+y > 2*size)
+        if (x < 0 || x > 2 * size || y < -size || y > size || x + y < 0 || x + y > 2 * size)
             throw new System.NotImplementedException($"Instruction pointer is out of code grid: {Pos}. Wrapping is not implemented because not used by the generator");
     }
 }

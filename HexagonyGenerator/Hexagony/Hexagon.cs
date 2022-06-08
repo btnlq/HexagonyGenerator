@@ -51,9 +51,9 @@ class Hexagon
 
             if (value != Command.Nop)
             {
-                _size = Max(_size, Abs(y));     // -n <= y <= n
-                _size = Max(_size, x+y+1 >> 1); // 0 <= x+y <= 2n
-                _size = Max(_size, x+1 >> 1);   // 0 <= x <= 2n
+                _size = Max(_size, Abs(y));         // -n <= y <= n
+                _size = Max(_size, x + y + 1 >> 1); // 0 <= x+y <= 2n
+                _size = Max(_size, x + 1 >> 1);     // 0 <= x <= 2n
             }
         }
     }
@@ -68,7 +68,7 @@ class Hexagon
                 sb.Append(' ', Abs(_size - x));
 
             int leftY = -Min(x, _size);
-            int rightY = Min(_size, 2*_size - x);
+            int rightY = Min(_size, 2 * _size - x);
             for (int y = leftY; y <= rightY; y++)
             {
                 int cmd = this[x, y];
@@ -103,7 +103,7 @@ class Hexagon
     {
         bytes = chars = 3 * Size * (Size + 1) + 1;
         operators = 0;
-        
+
         foreach (var rows in new[] { _left, _right })
             foreach (var row in rows)
                 foreach (var cmd in row)

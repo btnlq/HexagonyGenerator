@@ -30,7 +30,7 @@ class Compiler
                     _pointers.Add(blockStmt.Block, (blockCurrent, blockNext));
                     CompileBlock(blockStmt.Block, blockCurrent, blockStmt.Block.IsLoop != null ? blockCurrent : blockNext);
                     _pointers.Remove(blockStmt.Block);
-                    
+
                     current.Continuation = new Continuation(blockCurrent);
                     current = blockNext;
                     break;

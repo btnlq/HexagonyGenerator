@@ -19,7 +19,7 @@ static class Desugar
         BlockStatement blockStmt = new(block);
         return initializer != null ? initializer.Append(blockStmt) : blockStmt;
     }
-    
+
     public static IEnumerable<IStatement> While(IBooleanExpression condition, Block block)
     {
         block.AddToFront(BreakUnless(condition, block));

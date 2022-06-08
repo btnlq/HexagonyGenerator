@@ -256,7 +256,7 @@ class Parser
         Read(TokenType.Semicolon);
         return assignment;
     }
-        
+
     private IEnumerable<IStatement> ParseAssignmentExpression()
     {
         Token destToken = Read(TokenType.Identifier);

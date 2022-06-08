@@ -2,5 +2,4 @@
 
 readonly record struct Pos(int X, int Y)
 {
-    public static readonly Pos Zero = new();
 }

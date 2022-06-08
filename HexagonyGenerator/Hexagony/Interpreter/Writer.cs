@@ -22,7 +22,7 @@ class Writer
 
     public void WriteInt(Value value)
     {
-        var bytes = Encoding.UTF8.GetBytes(value.ToString());
+        var bytes = Encoding.UTF8.GetBytes(value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         _output.Write(bytes);
     }
 }
