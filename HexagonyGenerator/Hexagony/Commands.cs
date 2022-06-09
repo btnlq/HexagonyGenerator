@@ -4,7 +4,9 @@ using System.Collections;
 
 class Commands : IEnumerable<int>
 {
-    private readonly List<int> _cmds = new();
+    private readonly List<int> _cmds;
+
+    public Commands() { _cmds = new(); }
 
     public int this[int index]
     {
@@ -27,4 +29,14 @@ class Commands : IEnumerable<int>
     public void Reverse() => _cmds.Reverse();
 
     public static readonly Commands Empty = new();
+
+    private Commands(List<int> cmds) { _cmds = cmds; }
+
+    public Commands Cut(int start)
+    {
+        int count = _cmds.Count - start;
+        Commands rest = new(_cmds.GetRange(start, count));
+        _cmds.RemoveRange(start, count);
+        return rest;
+    }
 }

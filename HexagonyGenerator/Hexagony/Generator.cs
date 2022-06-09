@@ -142,14 +142,11 @@ class Generator
         foreach (var action in procedure.Actions)
             action.ApplyTo(memory);
 
-        Commands SetIp(Procedure procedure)
+        Commands SetIp(Procedure procedure, Commands? cmds = null)
         {
-            Commands cmds = new();
+            cmds ??= new();
             if (procedure != Procedure.Exit)
-            {
                 new Memory(cmds, memory).SetIp(procedure.Index - 1);
-                cmds.Reverse();
-            }
             else
                 cmds.Add(Command.Exit);
             return cmds;
@@ -169,11 +166,15 @@ class Generator
                 };
                 break;
             case Continuation continuation:
-                body = new(main, SetIp(continuation.Next), Commands.Empty);
+                SetIp(continuation.Next, main);
+                body = new(main, main.Cut(main.Count >> 1), Commands.Empty);
                 footer = TrueFooter;
                 break;
             default:
                 throw new UnexpectedDefaultException();
         }
+
+        body[1].Reverse();
+        body[2].Reverse();
     }
 }
