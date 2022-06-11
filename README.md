@@ -19,6 +19,7 @@ x = (x + y * z) / someVar - 44 % read; // you can write an arithmetic expression
 x += y * z;
 x++; // increment/decrement is a statement, you can't use it inside an expression
 x = 0b101010 + 0o52 + 42 + 0x2b; // x = 42 + 42 + 42 + 42;
+x = array(96, {10, 20, 30, 40}); // x = 10 + 96 * (20 + 96 * (30 + 96 * 40));
 x = (10^9 - 1)^3; /* You can use the exponentiation operator if both operands are constant expressions.
                      Any operator with constant operands is evaluated at compile time.*/
 
