@@ -65,10 +65,11 @@ class Grid
                 busStep = true;
             }
 
-            bool forward = _mpDir == mpDir;
-            _cmds.Add(forward ?
-                turnRight ? Command.TurnRight : Command.TurnLeft :
-                turnRight ? Command.TurnLeftBackwards : Command.TurnRightBackwards); // TODO: remove '}, }', "{, {"
+            bool reversed = _mpDir != mpDir;
+            if (_cmds.Count > 0 && _cmds[^1] == TurnCommand(turnRight ^ reversed, !reversed))
+                _cmds.Pop(1);
+            else
+                _cmds.Add(TurnCommand(turnRight ^ reversed, reversed));
 
             _mpIndex += busStep ? 2 * dir : dir;
             if (busStep)
@@ -76,7 +77,7 @@ class Grid
 
             if (withCopy)
             {
-                if (forward)
+                if (!reversed)
                     ReverseMp();
 
                 _cmds.Add('a');
@@ -86,6 +87,11 @@ class Grid
             }
         }
     }
+
+    private static char TurnCommand(bool turnRight, bool backwards) =>
+        backwards ?
+            turnRight ? Command.TurnRightBackwards : Command.TurnLeftBackwards :
+            turnRight ? Command.TurnRight : Command.TurnLeft;
 
     private void ReverseMp()
     {

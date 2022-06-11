@@ -32,6 +32,8 @@ class Commands : IEnumerable<int>
 
     private Commands(List<int> cmds) { _cmds = cmds; }
 
+    public void Pop(int count) => _cmds.RemoveRange(_cmds.Count - count, count);
+
     public Commands Cut(int start)
     {
         int count = _cmds.Count - start;
