@@ -208,12 +208,12 @@ class Parser
                     var text = Unescape(str.Text);
                     var bytes = System.Text.Encoding.UTF8.GetBytes(text, 1, text.Length - 2);
                     foreach (var _byte in bytes)
-                        actions.Add(new Writing(VariableType.Byte, new Integer(_byte)));
+                        actions.AddWriting(VariableType.Byte, new Integer(_byte));
                 }
                 else
                 {
                     ISymbol symbol = ParseArithmeticSum().ToSymbol(actions);
-                    actions.Add(new Writing(VariableType.Int, symbol));
+                    actions.AddWriting(VariableType.Int, symbol);
                 }
 
                 if (TryRead(TokenType.RParen) != null)
@@ -224,7 +224,7 @@ class Parser
         Read(TokenType.Semicolon);
 
         if (newLine)
-            actions.Add(new Writing(VariableType.Byte, new Integer('\n')));
+            actions.AddWriting(VariableType.Byte, new Integer('\n'));
 
         return actions.Statements;
     }
@@ -239,7 +239,7 @@ class Parser
             ISymbol symbol = ParseArithmeticSum().ToSymbol(actions);
             if (symbol is Integer integer && (integer.Value < 0 || integer.Value > 255))
                 throw new ParserException($"Integer out of range 0..255: {integer.Value}", token);
-            actions.Add(new Writing(VariableType.Byte, symbol));
+            actions.AddWriting(VariableType.Byte, symbol);
 
             if (TryRead(TokenType.RParen) != null)
                 break;

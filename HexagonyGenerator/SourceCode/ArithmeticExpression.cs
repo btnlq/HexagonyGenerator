@@ -69,7 +69,7 @@ static class ArithmeticExpression
         {
             var left = Left.ToSymbol(actions);
             var right = Right.ToSymbol(actions);
-            actions.Add(new Assignment(variable, left, Op, right));
+            actions.AddAssignment(new(variable, left, Op, right));
         }
     }
 
@@ -89,7 +89,7 @@ static class ArithmeticExpression
 
         public void AssignTo(Variable variable, SimpleActionList actions)
         {
-            actions.Add(new Assignment(variable, Symbol));
+            actions.AddAssignment(new(variable, Symbol));
         }
     }
 }
