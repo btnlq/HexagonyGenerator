@@ -26,7 +26,7 @@ class Memory : IMemory
 
     private void Set(Edge dest, Register register) => _grid.Set(dest, register);
     private void Set(Edge dest, Value value) => _grid.Set(dest, value);
-    private void CallOp(Edge dest, char op) => _grid.CallOp(dest, op);
+    private void CallOp(Edge dest, char op, bool mutable = true) => _grid.CallOp(dest, op, mutable);
     private void CallOp(Register dest, BinOp op) => _grid.CallBinOp(dest, op.ToCommand());
 
     public void Set(Variable dest, ISymbol symbol) => Set((Register)dest, symbol);
@@ -258,7 +258,7 @@ class Memory : IMemory
             Set(temp, symbol);
         }
 
-        CallOp(temp, command);
+        CallOp(temp, command, false);
     }
 }
 

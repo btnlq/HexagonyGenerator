@@ -20,6 +20,7 @@ class Grid
     private MemDir _mpDir;
 
     private readonly Commands _cmds;
+    private readonly Dictionary<int, Value> _cache = new();
 
     public Grid(Commands cmds, Register register)
     {
@@ -80,9 +81,19 @@ class Grid
                 if (!reversed)
                     ReverseMp();
 
-                _cmds.Add('a');
-                if (turnRight)
-                    _cmds.Add(Command.Negate);
+                if (_cache.TryGetValue(_mpIndex, out var value))
+                {
+                    if (value.Sign <= 0 ^ turnRight)
+                        _cmds.Add(value.IsZero ? Command.Increment : Command.Negate);
+                    _cache.Remove(_mpIndex);
+                }
+                else
+                {
+                    _cmds.Add('a');
+                    if (turnRight)
+                        _cmds.Add(Command.Negate);
+                }
+
                 _cmds.Add(Command.Copy);
             }
         }
@@ -99,10 +110,12 @@ class Grid
         _mpDir = 1 - _mpDir;
     }
 
-    public void CallOp(Edge dest, char op)
+    public void CallOp(Edge dest, char op, bool mutable)
     {
         MoveTo(dest);
         _cmds.Add(op);
+        if (mutable)
+            _cache.Remove(_mpIndex);
     }
 
     public void CallBinOp(Register dest, char op)
@@ -110,10 +123,13 @@ class Grid
         MoveTo(dest);
         TurnToBus();
         _cmds.Add(op);
+        _cache.Remove(_mpIndex);
     }
 
     private void Put(Value value)
     {
+        _cache[_mpIndex] = value;
+
         bool isNegative = value.Sign < 0;
         if (isNegative) value = -value;
 
@@ -151,6 +167,8 @@ class Grid
 
     public void Set(Edge dest, Value value)
     {
+        if (_cache.TryGetValue(dest.Index, out var oldValue) && value == oldValue)
+            return;
         MoveTo(dest);
         Put(value);
     }
