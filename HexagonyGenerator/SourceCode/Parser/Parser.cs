@@ -350,6 +350,24 @@ class Parser
             return expression;
         }
 
+        if (TryRead(TokenType.Keyword, Keyword.Array) != null)
+        {
+            Read(TokenType.LParen);
+            var arrayBase = ParseArithmeticSum();
+            Read(TokenType.Comma);
+            Read(TokenType.LBrace);
+            var array = new List<IArithmeticExpression>();
+            do array.Add(ParseArithmeticSum());
+            while (TryRead(TokenType.Comma) != null);
+            Read(TokenType.RBrace);
+            Read(TokenType.RParen);
+            var result = array[^1];
+            for (int i = array.Count - 2; i >= 0; i--)
+                result = ArithmeticExpression.Create(array[i], BinOp.Add,
+                    ArithmeticExpression.Create(arrayBase, BinOp.Mul, result));
+            return result;
+        }
+
         return ArithmeticExpression.Create(ParseSymbol());
     }
 

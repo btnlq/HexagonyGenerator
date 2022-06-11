@@ -14,7 +14,8 @@ static class Keyword
     public const string ReadInt = "read";
     public const string WriteInt = "write";
     public const string WritelnInt = "writeln";
+    public const string Array = "array";
 
     public static bool Is(string str) => str is While or For or Break or Continue or Exit
-        or If or Else or ReadByte or WriteByte or ReadInt or WriteInt or WritelnInt;
+        or If or Else or ReadByte or WriteByte or ReadInt or WriteInt or WritelnInt or Array;
 }
