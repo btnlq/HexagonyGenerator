@@ -137,14 +137,16 @@ class Grid
         {
             int number = (int)value;
 
-            if (number == 0 || number == 96)
+            if (number == 0 || number == 96 || number == 126)
                 _cmds.Add(number + 1, Command.Decrement);
-            else if (number == 9 || number == 91)
+            else if (number == 9 || number == 91 || number == 123)
                 _cmds.Add(number - 1, Command.Increment);
             else if (10 <= number && number <= 13 || 32 <= number && number <= 64 || 0xD800 <= number && number < 0xDFFF)
                 _cmds.Add(number / 10, 48 + number % 10);
             else if (92 <= number && number <= 95)
                 _cmds.Add(8, Command.Increment, 48 + number % 10);
+            else if (124 <= number && number <= 125)
+                _cmds.Add(1, '2', number - (124 - '4'));
             else
                 _cmds.Add(number);
         }
@@ -165,15 +167,23 @@ class Grid
             _cmds.Add(Command.Negate);
     }
 
-    public void Set(Edge dest, Value value)
+    public void Set(Edge dest, Value value, bool put = false)
     {
-        if (_cache.TryGetValue(dest.Index, out var oldValue) && value == oldValue)
-            return;
+        if (_cache.TryGetValue(dest.Index, out var oldValue))
+            if (put ? (value & 255) == (oldValue & 255) : value == oldValue)
+                return;
+
+        if (put && Configuration.OptimizePut && value.Sign >= 0 && value <= 126)
+        {
+            int x = (int)value;
+            if (x == 0 || 9 <= x && x <= 13 || 32 <= x && x <= 64 || 91 <= x && x <= 96 || 123 <= x && x <= 126)
+                value = 256 + x;
+        }
+
         MoveTo(dest);
         Put(value);
     }
 
-    // $toIndex = $fromIndex
     public void Set(Edge dest, Edge from)
     {
         if (dest.Index == from.Index)

@@ -3,6 +3,15 @@ global using System.Linq;
 
 namespace HexagonyGenerator;
 
+static class Configuration
+{
+    /// <summary>
+    /// Replace commands like "put(10)" with "put(266)".
+    /// It increases the number of bytes but may help to generate a smaller grid.
+    /// </summary>
+    public static bool OptimizePut => false;
+}
+
 class Program
 {
     static void Main()

@@ -25,13 +25,13 @@ class Memory : IMemory
     public void MoveTo(Variable dest) => _grid.MoveTo((Register)dest);
 
     private void Set(Edge dest, Register register) => _grid.Set(dest, register);
-    private void Set(Edge dest, Value value) => _grid.Set(dest, value);
+    private void Set(Edge dest, Value value, bool put = false) => _grid.Set(dest, value, put);
     private void CallOp(Edge dest, char op, bool mutable = true) => _grid.CallOp(dest, op, mutable);
     private void CallOp(Register dest, BinOp op) => _grid.CallBinOp(dest, op.ToCommand());
 
     public void Set(Variable dest, ISymbol symbol) => Set((Register)dest, symbol);
 
-    private void Set(Edge dest, ISymbol symbol)
+    private void Set(Edge dest, ISymbol symbol, bool put = false)
     {
         switch (symbol)
         {
@@ -39,7 +39,7 @@ class Memory : IMemory
                 Set(dest, (Register)variable);
                 break;
             case Integer integer:
-                Set(dest, integer.Value);
+                Set(dest, integer.Value, put);
                 break;
             case Reading reading:
                 CallOp(dest, reading.Type == VariableType.Int ? Command.ReadInt : Command.ReadByte);
@@ -255,7 +255,7 @@ class Memory : IMemory
         else
         {
             temp = _grid.TempEdge;
-            Set(temp, symbol);
+            Set(temp, symbol, command == Command.WriteByte);
         }
 
         CallOp(temp, command, false);
