@@ -30,6 +30,14 @@ class Generator
 
     private void WriteProgram(Program program)
     {
+        if (Configuration.OptimizeSize)
+        {
+            var heights = new int[program.Procedures.Count];
+            foreach (var procedure in program.Procedures)
+                heights[procedure.Index] = EstimateHeight(procedure);
+            program.OrderByDescending(heights);
+        }
+
         foreach (var procedure in program.Procedures)
             WriteProcedure(procedure);
 
@@ -176,5 +184,11 @@ class Generator
 
         body[1].Reverse();
         body[2].Reverse();
+    }
+
+    private static int EstimateHeight(Procedure procedure)
+    {
+        GenerateCommands(procedure, out var body, out var footer);
+        return Enumerable.Range(0, 3).Max(i => Header[i].Count + body[i].Count + footer[i].Count);
     }
 }

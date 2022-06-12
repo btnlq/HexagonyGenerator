@@ -42,12 +42,7 @@ class Executor
         }
 
         if (optimize)
-        {
-            program.Procedures.Sort((p1, p2) => calls[p2.Index].CompareTo(calls[p1.Index]));
-            int index = 0;
-            foreach (var proc in program.Procedures)
-                proc.Index = index++;
-        }
+            program.OrderByDescending(calls);
 
         return memory.GetOutput();
     }

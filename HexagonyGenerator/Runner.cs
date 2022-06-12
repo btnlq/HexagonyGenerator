@@ -7,7 +7,7 @@ enum RunTarget
     /// <summary>Run internal bytecode representation (useful for debugging).</summary>
     Bytecode,
     /// <summary>Run internal bytecode representation and reorder procedures by number of calls.</summary>
-    BytecodeToOptimize,
+    BytecodeToOptimizeSpeed,
     /// <summary>Run generated hexagony program.</summary>
     Hexagony
 }
@@ -75,7 +75,7 @@ class Runner
         var reader = GetReader(inputFilePath);
 
         System.Console.WriteLine(runTarget == RunTarget.Hexagony ? "Executing hexagony" : "Executing bytecode");
-        bool optimize = runTarget == RunTarget.BytecodeToOptimize;
+        bool optimize = runTarget == RunTarget.BytecodeToOptimizeSpeed;
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         string output = runTarget == RunTarget.Hexagony ?
