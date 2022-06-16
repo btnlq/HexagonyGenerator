@@ -1,6 +1,6 @@
 ﻿namespace HexagonyGenerator.Bytecode;
 
-class Reading : ISymbol
+class Reading : ISymbol, IAction
 {
     public readonly VariableType Type;
 
@@ -8,4 +8,6 @@ class Reading : ISymbol
     {
         Type = type;
     }
+
+    public void ApplyTo(IMemory memory) => memory.Read(Type);
 }

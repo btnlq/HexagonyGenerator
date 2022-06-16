@@ -62,6 +62,8 @@ class Parser
                 Keyword.WriteInt => ParseIntWriting(false, token),
                 Keyword.WritelnInt => ParseIntWriting(true, token),
                 Keyword.WriteByte => ParseByteWriting(token),
+                Keyword.ReadInt => ParseReading(VariableType.Int),
+                Keyword.ReadByte => ParseReading(VariableType.Byte),
                 _ => throw new ParserException($"Unexpected '{token.Text}'", token),
             }
             : ParseAssignment();
@@ -248,6 +250,12 @@ class Parser
         Read(TokenType.Semicolon);
 
         return actions.Statements;
+    }
+
+    private IStatement ParseReading(VariableType type)
+    {
+        Read(TokenType.Semicolon);
+        return new Reading(type).AsStatement();
     }
 
     private IEnumerable<IStatement> ParseAssignment()

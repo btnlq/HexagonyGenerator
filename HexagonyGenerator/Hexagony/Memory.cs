@@ -31,6 +31,9 @@ class Memory : IMemory
 
     public void Set(Variable dest, ISymbol symbol) => Set((Register)dest, symbol);
 
+    private void Read(Edge dest, VariableType type)
+        => CallOp(dest, type == VariableType.Int ? Command.ReadInt : Command.ReadByte);
+
     private void Set(Edge dest, ISymbol symbol, bool put = false)
     {
         switch (symbol)
@@ -42,7 +45,7 @@ class Memory : IMemory
                 Set(dest, integer.Value, put);
                 break;
             case Reading reading:
-                CallOp(dest, reading.Type == VariableType.Int ? Command.ReadInt : Command.ReadByte);
+                Read(dest, reading.Type);
                 break;
             default:
                 throw new UnexpectedDefaultException();
@@ -83,6 +86,8 @@ class Memory : IMemory
                             CallOp(dest, Command.Negate);
                             return true;
                         case (0, BinOp.Mul): // x = 0 * y
+                            if (rightSymbol is Reading reading)
+                                Read(dest, reading.Type);
                             Set(dest, Value.Zero); // to: x = 0
                             return true;
                         case (1, BinOp.Add): // x = 1 + y
@@ -242,11 +247,7 @@ class Memory : IMemory
         CallOp(dest, op);
     }
 
-    public void WriteInt(ISymbol symbol) => Write(symbol, Command.WriteInt);
-
-    public void WriteByte(ISymbol symbol) => Write(symbol, Command.WriteByte);
-
-    private void Write(ISymbol symbol, char command)
+    public void Write(ISymbol symbol, VariableType type)
     {
         Edge temp;
 
@@ -255,11 +256,13 @@ class Memory : IMemory
         else
         {
             temp = _grid.TempEdge;
-            Set(temp, symbol, command == Command.WriteByte);
+            Set(temp, symbol, type == VariableType.Byte);
         }
 
-        CallOp(temp, command, false);
+        CallOp(temp, type == VariableType.Int ? Command.WriteInt : Command.WriteByte, false);
     }
+
+    public void Read(VariableType type) => Read(_grid.TempEdge, type);
 }
 
 static class BinOpEx

@@ -19,16 +19,18 @@ class Memory : IMemory
         private set { _data[variable.Location] = value; }
     }
 
+    private Value Read(VariableType type) => type switch
+    {
+        VariableType.Byte => _reader.ReadByte(),
+        VariableType.Int => _reader.ReadInt(),
+        _ => throw new UnexpectedDefaultException(),
+    };
+
     private Value Get(ISymbol symbol) => symbol switch
     {
         Variable from => this[from],
         Integer value => value.Value,
-        Reading reading => reading.Type switch
-        {
-            VariableType.Byte => _reader.ReadByte(),
-            VariableType.Int => _reader.ReadInt(),
-            _ => throw new UnexpectedDefaultException(),
-        },
+        Reading reading => Read(reading.Type),
         _ => throw new UnexpectedDefaultException(),
     };
 
@@ -44,15 +46,19 @@ class Memory : IMemory
         this[dest] = op.Compute(Get(left), Get(right));
     }
 
-    public void WriteByte(ISymbol symbol)
+    public void Write(ISymbol symbol, VariableType type)
     {
         var value = Get(symbol);
-        _writer.WriteByte(value);
+        switch (type)
+        {
+            case VariableType.Byte:
+                _writer.WriteByte(value); break;
+            case VariableType.Int:
+                _writer.WriteInt(value); break;
+            default:
+                throw new UnexpectedDefaultException();
+        }
     }
 
-    public void WriteInt(ISymbol symbol)
-    {
-        var value = Get(symbol);
-        _writer.WriteInt(value);
-    }
+    void IMemory.Read(VariableType type) => Read(type);
 }

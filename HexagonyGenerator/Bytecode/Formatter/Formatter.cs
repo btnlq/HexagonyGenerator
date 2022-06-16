@@ -46,6 +46,13 @@ class Formatter
             _sb.Append(integer.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
+    private void AppendReading(Reading reading)
+    {
+        _sb.Append(reading.Type == VariableType.Int ?
+            SourceCode.Parser.Keyword.ReadInt :
+            SourceCode.Parser.Keyword.ReadByte);
+    }
+
     private void AppendSymbol(ISymbol symbol, bool asChar = false)
     {
         switch (symbol)
@@ -57,9 +64,7 @@ class Formatter
                 AppendInteger(integer, asChar);
                 break;
             case Reading reading:
-                _sb.Append(reading.Type == VariableType.Int ?
-                    SourceCode.Parser.Keyword.ReadInt :
-                    SourceCode.Parser.Keyword.ReadByte);
+                AppendReading(reading);
                 break;
             default:
                 throw new UnexpectedDefaultException();
@@ -122,6 +127,9 @@ class Formatter
                         _sb.Append('(');
                         AppendSymbol(writing.Symbol, writing.Type == VariableType.Byte);
                         _sb.Append(')');
+                        break;
+                    case Reading reading:
+                        AppendReading(reading);
                         break;
                     default:
                         throw new UnexpectedDefaultException();

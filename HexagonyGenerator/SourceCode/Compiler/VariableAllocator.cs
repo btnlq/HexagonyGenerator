@@ -84,6 +84,8 @@ class VariableAllocator
                 case Goto:
                 case Exit:
                     continue;
+                case SimpleAction<Bytecode.Reading>:
+                    break;
                 default:
                     throw new UnexpectedDefaultException();
             }

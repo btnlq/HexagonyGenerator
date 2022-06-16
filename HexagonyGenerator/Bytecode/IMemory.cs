@@ -8,7 +8,7 @@ interface IMemory
     // $dest = $left `op` $right
     void Set(Variable dest, ISymbol left, BinOp op, ISymbol right);
 
-    void WriteInt(ISymbol symbol);
+    void Write(ISymbol symbol, VariableType type);
 
-    void WriteByte(ISymbol symbol);
+    void Read(VariableType type);
 }

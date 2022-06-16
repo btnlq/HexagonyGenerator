@@ -15,6 +15,7 @@ someVar = 12; // variables are implicitly declared by assigning a value to an un
 x = 'a'; // x = 97;
 y = get; // read a single byte from STDIN and set `y` to its value (hexagony command `,`)
 z = read; // read an integer from STDIN and set `z` to its value (hexagony command `?`)
+read; // read an integer and discard it
 x = (x + y * z) / someVar - 44 % read; // you can write an arithmetic expression anywhere a number is expected
 x += y * z;
 x++; // increment/decrement is a statement, you can't use it inside an expression

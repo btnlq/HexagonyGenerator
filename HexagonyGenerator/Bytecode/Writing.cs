@@ -13,16 +13,5 @@ class Writing : IAction
         Symbol = symbol;
     }
 
-    public void ApplyTo(IMemory memory)
-    {
-        switch (Type)
-        {
-            case VariableType.Int:
-                memory.WriteInt(Symbol); break;
-            case VariableType.Byte:
-                memory.WriteByte(Symbol); break;
-            default:
-                throw new UnexpectedDefaultException();
-        }
-    }
+    public void ApplyTo(IMemory memory) => memory.Write(Symbol, Type);
 }
