@@ -81,3 +81,18 @@ for outer_loop (i=2; i<=100; i++) { // labeled `for`
   writeln(i);
 }
 ```
+
+### Generation Tips
+
+Generated hexagon consists of "procedures", each procedure requires 3 columns.
+Each condition (`if`, `for`, `while`) adds 1 or 2 more procedures.
+So a large number of `if-else` results in a large hexagon.
+
+A single procedure program (i.e. a program without control flow statements)
+is transpiled using another algorithm into a smaller Hexagony.
+
+An equality comparison (`==` and `!=`) generates longer hexagony code.
+You can write `x <= 0` instead of `x == 0` if you are sure that `x` is nonnegative.
+
+A comparison without 0 creates a temporary variable,
+i.e. `if (x >= 3)` compiles into `t = x - 3; if (t >= 0)`.

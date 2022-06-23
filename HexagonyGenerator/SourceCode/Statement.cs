@@ -31,7 +31,7 @@ class SelfEnumerator<T> : IEnumerator<T>
 
     object? System.Collections.IEnumerator.Current => Current;
 
-    void System.Collections.IEnumerator.Reset() => _hasNext = false;
+    void System.Collections.IEnumerator.Reset() => _hasNext = true;
 
     public void Dispose() { }
 }

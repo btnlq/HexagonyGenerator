@@ -10,7 +10,7 @@ using Bytecode;
       . . . _ b a _ b a _ b a . .
      . . . . $ b a $ b a $ b a . .
     . . . . . c b a c b a c b a . .
-   . . . . . . c b c c b a c b a . .
+   . . . . . . c b a c b a c b a . .
   . . . . . . . . . . . . . . . . . .
 
 */
