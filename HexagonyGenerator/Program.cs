@@ -1,5 +1,6 @@
 ﻿global using System.Collections.Generic;
 global using System.Linq;
+global using Math = System.Math;
 
 namespace HexagonyGenerator;
 

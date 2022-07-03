@@ -146,7 +146,7 @@ class Runner
         var actual = File.ReadAllLines(actualOutputFilePath);
         var expected = File.ReadAllLines(expectedOutputFilePath);
 
-        int linesCount = System.Math.Max(actual.Length, expected.Length);
+        int linesCount = Math.Max(actual.Length, expected.Length);
 
         for (int i = 0; i < linesCount; i++)
         {

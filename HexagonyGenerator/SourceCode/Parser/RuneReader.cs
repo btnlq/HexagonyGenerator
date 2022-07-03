@@ -44,7 +44,7 @@ class RuneReader
 
     public bool Read(char c)
     {
-        if (Current.Value == c)
+        if (_current.Value == c)
         {
             Read();
             return true;
@@ -54,7 +54,7 @@ class RuneReader
 
     public bool ReadAny(string s)
     {
-        if (Current.IsBmp && s.Contains((char)Current.Value))
+        if (_current.IsBmp && s.Contains((char)_current.Value))
         {
             Read();
             return true;

@@ -28,5 +28,5 @@ class Register
     // < 0 - left
     // = 0 - both
     // > 0 - right
-    public int ClosestNeighbourTo(Edge edge) => (IsDown ? 1 : -1) * System.Math.Sign(edge.Index - _index);
+    public int ClosestNeighbourTo(Edge edge) => (IsDown ? 1 : -1) * Math.Sign(edge.Index - _index);
 }

@@ -1,7 +1,7 @@
 ﻿namespace HexagonyGenerator.Hexagony;
 
 using System.Text;
-using static System.Math;
+using static Math;
 
 class Hexagon
 {
