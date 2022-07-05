@@ -120,6 +120,25 @@ class Executor
         int size = Hexagon.Size;
 
         if (x < 0 || x > 2 * size || y < -size || y > size || x + y < 0 || x + y > 2 * size)
-            throw new System.NotImplementedException($"Instruction pointer is out of code grid: {Pos}. Wrapping is not implemented because not used by the generator");
+        {
+            if (y > size && x < size && Dir == 0)
+            {
+                y -= 2 * size + 1;
+                x += size;
+            }
+            else if (y > size && x >= 0 && Dir == 1)
+            {
+                y -= 2 * size + 1;
+                x += size + 1;
+            }
+            else if (y < -size && x > size && Dir == 3)
+            {
+                y += 2 * size + 1;
+                x -= size;
+            }
+            else
+                throw new System.NotImplementedException($"Instruction pointer is out of code grid: {Pos}. Wrapping is not implemented because not used by the generator");
+            Pos = new(x, y);
+        }
     }
 }

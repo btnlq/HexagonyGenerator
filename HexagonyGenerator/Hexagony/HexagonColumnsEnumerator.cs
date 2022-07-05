@@ -5,42 +5,35 @@ enum Dir { Down = 1, Up = -1 }
 class HexagonColumnsEnumerator
 {
     private readonly Hexagon? _hxg;
-    private readonly int _size;
-
-    // Shape
-    private int TopRow => 3;
-    private int LeftColumn => -1;
-    private int RightColumn => _size;
-    private int ColumnHeight(int column) => 2 * _size - 2 - Math.Max(column, 0);
-    // End Shape
+    private readonly IShape _shape;
 
     public int Column { get; private set; }
 
-    public HexagonColumnsEnumerator(int size, Hexagon? hxg = null)
+    public HexagonColumnsEnumerator(IShape shape, Hexagon? hxg = null)
     {
-        _size = size;
+        _shape = shape;
         _hxg = hxg;
-        Column = LeftColumn;
+        Column = _shape.LeftColumn;
     }
 
-    public bool IsFirst => Column == LeftColumn;
+    public bool IsFirst => Column == _shape.LeftColumn;
 
     public bool Readonly => _hxg == null;
 
-    public HexagonColumnsEnumerator ReadonlyCopy => new(_size) { Column = Column };
+    public HexagonColumnsEnumerator ReadonlyCopy => new(_shape) { Column = Column };
 
-    public int Available => RightColumn + 1 - Column;
+    public int Available => _shape.RightColumn + 1 - Column;
 
     public void Shift(int columns) => Column += columns;
 
-    public int Height(int column) => ColumnHeight(Column + column);
+    public int Height(int column) => _shape.ColumnHeight(Column + column);
 
     public int this[int column, int row]
     {
         set
         {
             if (_hxg != null)
-                _hxg[TopRow + row, Column + column] = value;
+                _hxg[_shape.TopRow + row, Column + column] = value;
         }
     }
 
@@ -51,7 +44,7 @@ class HexagonColumnsEnumerator
         else
         {
             column += Column;
-            row += TopRow;
+            row += _shape.TopRow;
             foreach (var cmd in commands.Get(count))
             {
                 _hxg[row, column] = cmd;
@@ -65,7 +58,7 @@ class HexagonColumnsEnumerator
         if (_hxg != null)
         {
             column += Column;
-            row += TopRow;
+            row += _shape.TopRow;
             for (int i = commands.Count - 1; i >= 0; i--)
             {
                 _hxg[row, column] = commands[i];

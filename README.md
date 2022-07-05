@@ -84,7 +84,7 @@ for outer_loop (i=2; i<=100; i++) { // labeled `for`
 
 ### Generation Tips
 
-Generated hexagon consists of "procedures", each procedure requires 3 columns.
+Generated hexagon consists of "procedures", each procedure requires at least 3 columns.
 Each condition (`if`, `for`, `while`) adds 1 or 2 more procedures.
 So a large number of `if-else` results in a large hexagon.
 

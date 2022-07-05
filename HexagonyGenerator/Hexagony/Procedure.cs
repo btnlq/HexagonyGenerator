@@ -272,15 +272,4 @@ class Procedure
             columns[-1, -2] = '<';
         return result;
     }
-
-    public int EstimateSize()
-    {
-        int length = Main.Count;
-        if (Type != null)
-        {
-            var footer = DownwardFooter;
-            length += footer.MinPosition(3 + FalseBranch.Count, 1 + TrueBranch.Count, 0) + footer.Bottom(2);
-        }
-        return length;
-    }
 }

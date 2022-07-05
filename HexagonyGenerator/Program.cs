@@ -11,11 +11,6 @@ static class Configuration
     /// It increases the number of bytes but may help to generate a smaller grid.
     /// </summary>
     public static bool OptimizePut => false;
-    /// <summary>
-    /// Reorder procedures by length. It may help to generate a smaller grid.
-    /// Incompatible with `RunTarget.BytecodeToOptimizeSpeed`.
-    /// </summary>
-    public static bool OptimizeSize => true;
 }
 
 class Program
