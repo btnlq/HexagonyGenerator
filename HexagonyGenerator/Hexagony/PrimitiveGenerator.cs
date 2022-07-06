@@ -16,7 +16,7 @@ static class PrimitiveGenerator
         while (size * (3 * size - 2) < commands.Count)
             size++;
 
-        Hexagon hxg = new();
+        Hexagon hxg = new(size);
 
         int x = 0, y = 0, dir = 1;
 

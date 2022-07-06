@@ -8,11 +8,7 @@ class Commands : IEnumerable<int>
 
     public Commands() { _cmds = new(); }
 
-    public int this[int index]
-    {
-        get => _cmds[index];
-        set => _cmds[index] = value;
-    }
+    public int this[int index] => _cmds[index];
 
     public int Count => _cmds.Count;
 
@@ -26,19 +22,7 @@ class Commands : IEnumerable<int>
 
     public void Add(params int[] cmds) => _cmds.AddRange(cmds);
 
-    public void Reverse() => _cmds.Reverse();
-
     public static readonly Commands Empty = new();
 
-    private Commands(List<int> cmds) { _cmds = cmds; }
-
     public void Pop(int count) => _cmds.RemoveRange(_cmds.Count - count, count);
-
-    public Commands Cut(int start)
-    {
-        int count = _cmds.Count - start;
-        Commands rest = new(_cmds.GetRange(start, count));
-        _cmds.RemoveRange(start, count);
-        return rest;
-    }
 }

@@ -17,22 +17,7 @@ using Bytecode;
 
 class Generator
 {
-    private readonly Hexagon hxg = new();
-    private readonly List<Procedure> procedures;
-
-    private Generator(Program program)
-    {
-        procedures = program.Procedures.ConvertAll(procedure => new Procedure(procedure));
-    }
-
-    public static Hexagon Generate(Program program)
-    {
-        Generator generator = new(program);
-        generator.WriteProgram(program.Start.Index);
-        return generator.hxg;
-    }
-
-    private bool TryWriteProcedures(int size, bool firstIsBig)
+    private static Hexagon? TryWriteProcedures(List<Procedure> procedures, int size, bool firstIsBig)
     {
         var firstShape = new FirstShape(size, firstIsBig);
         var enumerator = new HexagonColumnsEnumerator(firstShape);
@@ -41,10 +26,11 @@ class Generator
 
         if (i == procedures.Count)
         {
+            var hxg = new Hexagon(size);
             enumerator = new HexagonColumnsEnumerator(firstShape, hxg);
             foreach (var procedure in procedures)
                 procedure.Write(enumerator);
-            return true;
+            return hxg;
         }
 
         int firstCount = i;
@@ -54,6 +40,7 @@ class Generator
 
         if (i == procedures.Count)
         {
+            var hxg = new Hexagon(size);
             enumerator = new HexagonColumnsEnumerator(firstShape, hxg);
             for (i = 0; i < firstCount; i++) procedures[i].Write(enumerator);
 
@@ -69,29 +56,34 @@ class Generator
                 hxg[size + 1, -size] = '.';
             }
 
-            return true;
+            return hxg;
         }
 
-        return false;
+        return null;
     }
 
-    private void WriteProgram(int start)
+    public static Hexagon Generate(Program program)
     {
+        var procedures = program.Procedures.ConvertAll(procedure => new Procedure(procedure));
         int count = procedures.Count;
 
         int minBigSize = count > 3 ? 3 * count / 2 : count + 2;
         int minSmallSize = Math.Max(6, count);
 
+        Hexagon? hxg;
+
         for (int size = Math.Min(minBigSize, minSmallSize); ; size++)
         {
-            if (size >= minBigSize && TryWriteProcedures(size, true))
+            if (size >= minBigSize && (hxg = TryWriteProcedures(procedures, size, true)) != null)
                 break;
-            if (size >= minSmallSize && TryWriteProcedures(size, false))
+            if (size >= minSmallSize && (hxg = TryWriteProcedures(procedures, size, false)) != null)
                 break;
         }
 
         hxg[1, 0] = '~';
         hxg[2, -2] = '\\';
+
+        int start = program.Start.Index;
 
         if (start < 3)
         {
@@ -110,5 +102,7 @@ class Generator
             while (hxg[1, y - 1] != ')') y++;
             hxg[0, y] = '\\';
         }
+
+        return hxg;
     }
 }

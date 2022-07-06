@@ -1,60 +1,56 @@
 ﻿namespace HexagonyGenerator.Hexagony;
 
 using System.Text;
-using static Math;
 
 class Hexagon
 {
-    private readonly List<Commands> _right = new();
-    private readonly List<Commands> _left = new();
+    private readonly int _size;
+    private readonly int[][] _grid;
 
-    private int _size;
     public int Size => _size;
 
-    private static void Put(List<Commands> rows, int x, int y, int cmd)
+    public Hexagon(int size)
     {
-        while (x >= rows.Count)
-            rows.Add(new());
+        _size = size;
+        _grid = new int[_size * 2 + 1][];
+        for (int i = 0; i <= 2 * size; i++)
+        {
+            var row = new int[Math.Min(size + i, 3 * size - i) + 1];
+            System.Array.Fill(row, '.');
+            _grid[i] = row;
+        }
+    }
 
-        var row = rows[x];
+    // -n <= y <= n
+    // 0 <= x+y <= 2n
+    // 0 <= x <= 2n
+    private int GetIndex(int x, int y)
+    {
+        if (x > _size)
+        {
+            if (x <= 2 * _size && y >= -_size && x + y <= 2 * _size)
+                return y + _size;
+        }
+        else
+        {
+            if (x >= 0 && y <= _size && x + y >= 0)
+                return x + y;
+        }
 
-        while (y >= row.Count)
-            row.Add(Command.Nop);
-        row[y] = cmd;
+        throw new System.ArgumentOutOfRangeException(null, $"({x}, {y}) is outside the grid of size {_size}");
     }
 
     public int this[int x, int y]
     {
         get
         {
-            var rows = y < 0 ? _left : _right;
-            if (x >= rows.Count)
-                return Command.Nop;
-            if (y < 0)
-                y = ~y;
-            var row = rows[x];
-            if (y >= row.Count)
-                return Command.Nop;
-            return row[y];
+            int index = GetIndex(x, y);
+            return _grid[x][index];
         }
         set
         {
-            if (x < 0)
-                throw new System.ArgumentOutOfRangeException(null, $"x >= 0, but x = {x}");
-            if (x + y < 0)
-                throw new System.ArgumentOutOfRangeException(null, $"x+y >= 0, but x = {x}, y = {y}");
-
-            if (y >= 0)
-                Put(_right, x, y, value);
-            else
-                Put(_left, x, ~y, value);
-
-            if (value != Command.Nop)
-            {
-                _size = Max(_size, Abs(y));         // -n <= y <= n
-                _size = Max(_size, x + y + 1 >> 1); // 0 <= x+y <= 2n
-                _size = Max(_size, x + 1 >> 1);     // 0 <= x <= 2n
-            }
+            int index = GetIndex(x, y);
+            _grid[x][index] = value;
         }
     }
 
@@ -65,13 +61,10 @@ class Hexagon
         for (int x = 0; x <= 2 * _size; x++)
         {
             if (pretty)
-                sb.Append(' ', Abs(_size - x));
+                sb.Append(' ', Math.Abs(_size - x));
 
-            int leftY = -Min(x, _size);
-            int rightY = Min(_size, 2 * _size - x);
-            for (int y = leftY; y <= rightY; y++)
+            foreach (int cmd in _grid[x])
             {
-                int cmd = this[x, y];
                 if (cmd <= char.MaxValue)
                     sb.Append((char)cmd);
                 else
@@ -101,17 +94,16 @@ class Hexagon
 
     public void Stats(out int bytes, out int chars, out int operators)
     {
-        bytes = chars = 3 * Size * (Size + 1) + 1;
+        bytes = chars = 3 * _size * (_size + 1) + 1;
         operators = 0;
 
-        foreach (var rows in new[] { _left, _right })
-            foreach (var row in rows)
-                foreach (var cmd in row)
-                    if (cmd != Command.Nop)
-                    {
-                        operators++;
-                        bytes += new Rune(cmd).Utf8SequenceLength;
-                    }
+        foreach (var row in _grid)
+            foreach (var cmd in row)
+                if (cmd != Command.Nop)
+                {
+                    operators++;
+                    bytes += new Rune(cmd).Utf8SequenceLength;
+                }
 
         bytes -= operators;
     }
