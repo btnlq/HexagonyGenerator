@@ -57,3 +57,70 @@ class Footer
         }
     }
 }
+
+class FooterGroup
+{
+    private readonly Footer[] _footers;
+
+    public FooterGroup(Footer[] footers)
+    {
+        _footers = footers;
+    }
+
+    public FooterGroup(string column0, string column1, string column2, string? column2shift2 = null)
+    {
+        Footer footer0 = new(column0, column1, column2);
+        Footer footer1 = new(column0[1..] + ".", column1, column2);
+        Footer footer2 = column2shift2 == null ? footer0 : new(column0, column1, column2shift2);
+        _footers = new[] { footer0, footer1, footer2 };
+    }
+
+    public Footer this[int nextWrap] => _footers[nextWrap < 3 ? nextWrap : 0];
+}
+
+class Footers
+{
+    /*
+
+    aaa - entry
+    bbb - true branch
+    ccc - false branch
+
+    -- DOWNWARD CONDITIONAL --      --- UPWARD CONDITIONAL ---      - UNCODNITIONAL -
+    x > 0     x < 0     x != 0      x > 0     x < 0     x != 0      short     long
+
+    c b a     c b a     c b a       c b .     c b .     c b .       b . a     b / < a
+     c b a     c b a     c b a       c b .     c b .     c b .       b . a     b a a a
+      c b a     c ~ ~     c b a       c b .     c ~ .     c b .       b . a     b a a a
+       c > /     ~ > /     c b $       c > <     ~ > <     c > <       a . |     a a a a
+        _ . .     _ . .     c > <       _ . a     _ . ~     _ $ |       a a .     a | a |
+         . . .     . . .     _ $ .       . . a     . . a     . ~ .       _ . .     _ . _ .
+                              . ~ ~       . . a     . . a     | > <
+                               . > /                           _ . ~
+                                > . .                           . . a
+                                 . . .                           . . a
+    */
+
+    public static FooterGroup UnconditionalShort = new(new Footer[] {
+        new("  _", " .", "|"),
+        new(" _.", " ..", "|"),
+        new(" _", "..", "|."),
+    });
+
+    private static readonly FooterGroup[] _downwardFooters =
+    {
+        new(" _", ">", "/"),
+        new(" ~_", "~>", "~/"),
+        new("  _..>", " >$~>", "$<.~/", "$<.~/."),
+    };
+
+    private static readonly FooterGroup[] _upwardFooters =
+    {
+        new(" _", ">", "<"),
+        new(" ~_", "~>", " <~"),
+        new(" _.|_", ">$~>", "<|.<~", "<.|<~"),
+    };
+
+    public static FooterGroup Downward(Bytecode.ConditionType type) => _downwardFooters[(int)type];
+    public static FooterGroup Upward(Bytecode.ConditionType type) => _upwardFooters[(int)type];
+}

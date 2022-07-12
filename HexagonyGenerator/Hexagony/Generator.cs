@@ -17,45 +17,16 @@ using Bytecode;
 
 class Generator
 {
-    private static Hexagon? TryWriteProcedures(List<Procedure> procedures, int size, bool firstIsBig)
+    private static Hexagon? TryWriteProcedures(List<Procedure> procedures, int size, bool firstIsMain)
     {
-        var firstShape = new FirstShape(size, firstIsBig);
-        var enumerator = new HexagonColumnsEnumerator(firstShape);
-        int i = 0;
-        while (i < procedures.Count && procedures[i].Write(enumerator)) i++;
+        var enumerator = new HexagonColumnsEnumerator(size, firstIsMain);
 
-        if (i == procedures.Count)
+        if (procedures.All(procedure => procedure.Write(enumerator)))
         {
             var hxg = new Hexagon(size);
-            enumerator = new HexagonColumnsEnumerator(firstShape, hxg);
+            enumerator = new HexagonColumnsEnumerator(size, firstIsMain, hxg);
             foreach (var procedure in procedures)
                 procedure.Write(enumerator);
-            return hxg;
-        }
-
-        int firstCount = i;
-        var secondShape = new SecondShape(size, !firstIsBig);
-        enumerator = new HexagonColumnsEnumerator(secondShape);
-        while (i < procedures.Count && procedures[i].Write(enumerator)) i++;
-
-        if (i == procedures.Count)
-        {
-            var hxg = new Hexagon(size);
-            enumerator = new HexagonColumnsEnumerator(firstShape, hxg);
-            for (i = 0; i < firstCount; i++) procedures[i].Write(enumerator);
-
-            int lastColumn = enumerator.Column;
-
-            enumerator = new HexagonColumnsEnumerator(secondShape, hxg);
-            for (; i < procedures.Count; i++) procedures[i].Write(enumerator);
-
-            if (lastColumn <= size)
-            {
-                hxg[0, lastColumn] = '_';
-                hxg[1, lastColumn] = '>';
-                hxg[size + 1, -size] = '.';
-            }
-
             return hxg;
         }
 

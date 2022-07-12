@@ -136,6 +136,11 @@ class Executor
                 y += 2 * size + 1;
                 x -= size;
             }
+            else if (y < -size && x <= 2 * size && Dir == 4)
+            {
+                y += 2 * size + 1;
+                x -= size + 1;
+            }
             else
                 throw new System.NotImplementedException($"Instruction pointer is out of code grid: {Pos}. Wrapping is not implemented because not used by the generator");
             Pos = new(x, y);

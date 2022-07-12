@@ -44,48 +44,7 @@ class Procedure
         }
     }
 
-    /*
-
-    aaa - entry
-    bbb - true branch
-    ccc - false branch
-
-    -- DOWNWARD CONDITIONAL --      --- UPWARD CONDITIONAL ---      - UNCODNITIONAL -
-    x > 0     x < 0     x != 0      x > 0     x < 0     x != 0      short     long
-
-
-    . _ a     . _ a     . _ a       . _ .     . _ .     . _ .       b . a     b / < a
-     _ b a     _ b a     _ b a       _ b .     _ b .     _ b .       b . a     b a a a
-      $ b a     $ b a     $ b a       $ b .     $ b .     $ b .       b . a     b a a a
-       c b a     c b a     c b a       c b .     c b .     c b .       b . a     b a a a
-        c b a     c ~ ~     c b a       c b .     c ~ .     c b .       a . a     a a a a
-         c > /     ~ > /     c b $       c > <     ~ > <     c > <       a . |     a a a a
-          _ . .     _ . .     c > <       _ . a     _ . ~     _ $ .       a a .     a | a |
-           . . .     . . .     _ $ .       . . a     . . a     / ~ /       _ . .     _ . _ .
-                                . ~ ~       . . a     . . a     . > <
-                                 . > /                           _ . ~
-                                  > . .                           . . a
-                                   . . .                           . . a
-    */
-
-    private static readonly Footer[] _downwardFooters =
-    {
-        new(" _", ">", "/"),
-        new(" ~_", "~>", "~/"),
-        new("  _..>", " >$~>", "$<.~/"),
-    };
-
-    private static readonly Footer[] _upwardFooters =
-    {
-        new(" _", ">", "<"),
-        new(" ~_", "~>", " <~"),
-        new(" _/._", ">$~>", "<./<~"),
-    };
-
-    private Footer DownwardFooter => _downwardFooters[(int)Type!];
-    private Footer UpwardFooter => _upwardFooters[(int)Type!];
-
-    private static bool WriteSnake(HexagonColumnsEnumerator columns, CommandsEnumerator commands)
+    private static bool WriteSnake(HexagonColumnsEnumerator columns, CommandsEnumerator commands, bool continued = true)
     {
         while (columns.Available >= 2)
         {
@@ -93,11 +52,15 @@ class Procedure
             if (columnHeight < 3)
                 return false;
 
-            bool fit = commands.Count <= 2 * columnHeight - 4;
-            int height = fit ? Math.Max(commands.Count + 5 >> 1, 3) : columnHeight;
-            columns[0, 0] = '<';
-            columns.Write(0, 1, Dir.Down, commands, height - 2);
+            int wrapShift = columns.NextWrap == 1 ? 1 : 0;
+
+            bool fit = continued && commands.Count <= 2 * columnHeight - 4 - wrapShift;
+            int height = fit ? Math.Max(commands.Count + 5 + wrapShift >> 1, 3) : columnHeight - wrapShift;
+            if (continued) columns[0, 0] = '<';
+            int continuedShift = continued ? 1 : 0;
+            columns.Write(0, continuedShift, Dir.Down, commands, height - 1 - continuedShift);
             columns[0, height - 1] = '_';
+            height += wrapShift;
             columns[1, height - 2] = '|';
             columns.Write(1, height - 3, Dir.Up, commands, fit ? height - 2 : height - 3);
             if (!fit)
@@ -105,6 +68,7 @@ class Procedure
             columns.Shift(2);
             if (fit)
                 return true;
+            continued = true;
         }
 
         return false;
@@ -117,36 +81,50 @@ class Procedure
             return false;
 
         var main = new CommandsEnumerator(Main);
+        var footer = Footers.UnconditionalShort[columns.NextWrap];
+        int minPosition = Math.Max(0, main.Count - footer.Top(0) >> 1);
+        int maxPosition = footer.MaxPosition(columns.Height(0), columns.Height(1), columns.Height(2));
 
-        int height = Math.Max((main.Count >> 1) + 2, 3);
-        if (height <= columnHeight)
+        if (minPosition <= maxPosition)
         {
-            columns.Write(0, 0, Dir.Down, main, height - 1);
-            columns[0, height - 1] = '_';
-            columns.Write(1, height - 2, Dir.Up, main, 1);
-            columns[2, height - 3] = '|';
-            columns.Write(2, height - 4, Dir.Up, main, height - 3);
+            footer.Write(columns, minPosition);
+            columns.Write(0, 0, Dir.Down, main, minPosition + footer.Top(0));
+            columns.Write(1, minPosition + footer.Top(1), Dir.Up, main, 1);
+            columns.Write(2, minPosition + footer.Top(2) - 1, Dir.Up, main, main.Count);
             columns.Shift(3);
             return true;
         }
         else
         {
-            height = columnHeight;
-            columns.Write(0, 0, Dir.Down, main, height - 1);
-            columns[0, height - 1] = '_';
-            columns[1, height - 2] = '|';
-            columns.Write(1, height - 3, Dir.Up, main, height - 3);
-            columns[1, 0] = '/';
-            columns.Shift(2);
-            return WriteSnake(columns, main);
+            return WriteSnake(columns, main, false);
         }
+    }
+
+    /*
+    . _ a         aaa - entry
+     _ b a        bbb - true branch
+      $ b a       ccc - false branch
+       c b a
+        c b a
+    */
+    private void WriteBranches(HexagonColumnsEnumerator columns, out int falseBranchSize, out int trueBranchSize)
+    {
+        int wrapShift = columns.NextWrap == 1 ? 1 : 0;
+        columns[0, 1 - wrapShift] = '_';
+        columns[0, 2 - wrapShift] = '$';
+        columns.Write(0, 3 - wrapShift, Dir.Down, FalseBranch);
+        columns[1, 0] = '_';
+        columns.Write(1, 1, Dir.Down, TrueBranch);
+        falseBranchSize = FalseBranch.Count + 3 - wrapShift;
+        trueBranchSize = TrueBranch.Count + 1;
     }
 
     private bool WriteDownward(HexagonColumnsEnumerator columns)
     {
-        var footer = DownwardFooter;
+        var footer = Footers.Downward(Type!.Value)[columns.NextWrap];
 
-        int minPosition = footer.MinPosition(3 + FalseBranch.Count, 1 + TrueBranch.Count, Main.Count > 0 ? 1 : 0);
+        WriteBranches(columns, out int falseBranchSize, out int trueBranchSize);
+        int minPosition = footer.MinPosition(falseBranchSize, trueBranchSize, Main.Count > 0 ? 1 : 0);
         int maxPosition = footer.MaxPosition(columns.Height(0), columns.Height(1), columns.Height(2));
 
         if (minPosition > maxPosition)
@@ -155,13 +133,6 @@ class Procedure
         var position = Main.Count - footer.Top(2);
         bool fit = position <= maxPosition;
         position = Math.Clamp(position, minPosition, maxPosition);
-
-        columns[0, 1] = '_';
-        columns[0, 2] = '$';
-        columns.Write(0, 3, Dir.Down, FalseBranch);
-        columns[1, 0] = '_';
-        columns.Write(1, 1, Dir.Down, TrueBranch);
-
         footer.Write(columns, position);
 
         if (fit)
@@ -183,28 +154,27 @@ class Procedure
 
     private bool WriteUpward(HexagonColumnsEnumerator columns)
     {
-        var footer = UpwardFooter;
+        int nextWrap = columns.NextWrap;
+        var footer = Footers.Upward(Type!.Value)[nextWrap];
 
-        int minPosition = footer.MinPosition(3 + FalseBranch.Count, 1 + TrueBranch.Count, 0);
-        int maxPosition = footer.MaxPosition(columns.Height(0), columns.Height(1), columns.Height(2) - 1);
+        int wrapShift = nextWrap == 3 ? 1 : 0;
+
+        WriteBranches(columns, out int falseBranchSize, out int trueBranchSize);
+        int minPosition = footer.MinPosition(falseBranchSize, trueBranchSize, 0);
+        int maxPosition = footer.MaxPosition(columns.Height(0), columns.Height(1), columns.Height(2) - 1 - wrapShift);
 
         if (minPosition > maxPosition)
             return false;
-
-        columns[0, 1] = '_';
-        columns[0, 2] = '$';
-        columns.Write(0, 3, Dir.Down, FalseBranch);
-        columns[1, 0] = '_';
-        columns.Write(1, 1, Dir.Down, TrueBranch);
 
         footer.Write(columns, minPosition);
 
         var main = new CommandsEnumerator(Main);
         int mainStart = minPosition + footer.Bottom(2);
-        int height = Math.Clamp(main.Count + mainStart + 4 >> 1, mainStart + 1, columns.Height(2));
+        int height = Math.Clamp(main.Count + mainStart + 4 - wrapShift >> 1, mainStart + 1, columns.Height(2) - wrapShift);
 
         columns.Write(2, mainStart, Dir.Down, main, height - mainStart - 1);
         columns[2, height - 1] = '_';
+        height += wrapShift;
         columns[3, height - 2] = '|';
 
         if (main.Count <= height - 2)
