@@ -25,10 +25,22 @@ class Shape
     private readonly int _size;
     private readonly bool _firstIsMain;
 
-    public Shape(int size, bool firstIsMain)
+    private readonly int _nopRows;
+    private readonly int _firstNopColumn;
+
+    private int NopHeight(int column) =>
+        Math.Max(column, _nopRows + (column >= _firstNopColumn ? 1 : 0));
+
+    public Shape(int size, bool firstIsMain, int nopCount = 0)
     {
         _size = size;
         _firstIsMain = firstIsMain;
+
+        int nopRows = 0;
+        for (; _size + nopRows < nopCount; nopRows++)
+            nopCount -= _size + nopRows + 1;
+        _nopRows = nopRows;
+        _firstNopColumn = 1 + nopRows - nopCount;
     }
 
     public int Size => _size;
@@ -41,12 +53,12 @@ class Shape
         if (column < _size + 2) // 1st row
         {
             column -= 1;
-            return _firstIsMain || column >= _size - 1 ? 2 * _size - 2 - Math.Max(column, 0) : _size - 3;
+            return _firstIsMain || column >= _size - 1 ? 2 * _size - 2 - NopHeight(column) : _size - 3;
         }
         else // 2nd row
         {
             column -= 2 * _size + 2;
-            return _size - 2 - Math.Max(column, 0);
+            return _size - 2 - NopHeight(column);
         }
     }
 

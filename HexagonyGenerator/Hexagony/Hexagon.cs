@@ -92,6 +92,26 @@ class Hexagon
         return sb.ToString();
     }
 
+    private int NopsCount()
+    {
+        int toRemove = 6 * _size - 1;
+        int rowId = _grid.Length - 1;
+        int index = _grid[rowId].Length - 1;
+
+        while (toRemove > 0 && _grid[rowId][index] == Command.Nop)
+        {
+            toRemove--;
+            index--;
+            if (index < 0)
+            {
+                rowId--;
+                index = _grid[rowId].Length - 1;
+            }
+        }
+
+        return 6 * _size - 1 - toRemove;
+    }
+
     public void Stats(out int bytes, out int chars, out int operators)
     {
         bytes = chars = 3 * _size * (_size + 1) + 1;
@@ -106,5 +126,9 @@ class Hexagon
                 }
 
         bytes -= operators;
+
+        int nopsCount = NopsCount();
+        bytes -= nopsCount;
+        chars -= nopsCount;
     }
 }
