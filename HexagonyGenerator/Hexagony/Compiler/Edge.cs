@@ -1,4 +1,4 @@
-﻿namespace HexagonyGenerator.Hexagony;
+﻿namespace HexagonyGenerator.Hexagony.Compiler;
 
 readonly struct Edge
 {

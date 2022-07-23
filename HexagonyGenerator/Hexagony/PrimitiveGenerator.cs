@@ -2,16 +2,17 @@
 
 static class PrimitiveGenerator
 {
-    public static Hexagon? Generate(Bytecode.Program program)
+    private static Commands Compile(Bytecode.Program program)
     {
-        if (!(program.Start.Continuation is Bytecode.Continuation continuation && continuation.Next == Bytecode.Procedure.Exit))
-            return null;
-
         var commands = new Commands();
-        var memory = new Memory(commands);
+        var memory = new Compiler.Memory(commands);
         foreach (var action in program.Start.Actions)
             action.ApplyTo(memory);
+        return commands;
+    }
 
+    private static Hexagon Draw(Commands commands)
+    {
         int size = 2;
         while (size * (3 * size - 2) < commands.Count)
             size++;
@@ -48,5 +49,13 @@ static class PrimitiveGenerator
         hxg[x, y] = Command.Exit;
 
         return hxg;
+    }
+
+    public static Hexagon? Generate(Bytecode.Program program)
+    {
+        if (!(program.Start.Continuation is Bytecode.Continuation continuation && continuation.Next == Bytecode.Procedure.Exit))
+            return null;
+
+        return Draw(Compile(program));
     }
 }
