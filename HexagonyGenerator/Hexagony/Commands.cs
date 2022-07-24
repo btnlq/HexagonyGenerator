@@ -18,8 +18,6 @@ class Commands : IEnumerable<int>
 
     public void Add(int cmd) => _cmds.Add(cmd);
 
-    public void AddRange(IEnumerable<int> cmds) => _cmds.AddRange(cmds);
-
     public void Add(params int[] cmds) => _cmds.AddRange(cmds);
 
     public static readonly Commands Empty = new();

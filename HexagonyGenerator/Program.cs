@@ -7,10 +7,10 @@ namespace HexagonyGenerator;
 static class Configuration
 {
     /// <summary>
-    /// Replace commands like "put(10)" with "put(266)".
-    /// It increases the number of bytes but may help to generate a smaller grid.
+    /// `Chars` and `ForceChars` options increase the number of bytes but may help to generate a smaller grid.
+    /// See `ValueEncoding` enum for more details.
     /// </summary>
-    public static bool OptimizePut => false;
+    public static ValueEncoding ValueEncoding => ValueEncoding.Chars;
 }
 
 class Program

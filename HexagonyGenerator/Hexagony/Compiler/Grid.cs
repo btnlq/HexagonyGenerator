@@ -126,6 +126,8 @@ class Grid
         _cache.Remove(_mpIndex);
     }
 
+    private static readonly Stack<int> _digits = new();
+
     private void Put(Value value)
     {
         _cache[_mpIndex] = value;
@@ -133,35 +135,32 @@ class Grid
         bool isNegative = value.Sign < 0;
         if (isNegative) value = -value;
 
-        if (value <= 0x10FFFF)
-        {
-            int number = (int)value;
+        bool useBytes = Configuration.ValueEncoding == ValueEncoding.Bytes;
 
-            if (number == 0 || number == 96 || number == 126)
-                _cmds.Add(number + 1, Command.Decrement);
-            else if (number == 9 || number == 91 || number == 123)
-                _cmds.Add(number - 1, Command.Increment);
-            else if (10 <= number && number <= 13 || 32 <= number && number <= 64 || 0xD800 <= number && number < 0xDFFF)
-                _cmds.Add(number / 10, 48 + number % 10);
-            else if (92 <= number && number <= 95)
-                _cmds.Add(8, Command.Increment, 48 + number % 10);
-            else if (124 <= number && number <= 125)
-                _cmds.Add(1, '2', number - (124 - '4'));
-            else
-                _cmds.Add(number);
-        }
-        else
+        int maxValue = useBytes ? 128 : 0x10FFFF;
+        while (value > maxValue)
         {
-            List<int> digits = new();
-            while (value > 0x10FFFF)
-            {
-                value = Value.DivRem(value, 10, out var digit);
-                digits.Add((int)digit + 48);
-            }
-            _cmds.Add((int)value);
-            digits.Reverse();
-            _cmds.AddRange(digits);
+            value = Value.DivRem(value, 10, out var digit);
+            _digits.Push((int)digit + 48);
         }
+
+        int number = (int)value;
+
+        if (number == 0 || number == 96 || number == 126)
+            _cmds.Add(number + 1, Command.Decrement);
+        else if (number == 9 || number == 91 || number == 123 || (number == 128 && useBytes))
+            _cmds.Add(number - 1, Command.Increment);
+        else if (10 <= number && number <= 13 || 32 <= number && number <= 64 || 0xD800 <= number && number < 0xDFFF)
+            _cmds.Add(number / 10, 48 + number % 10);
+        else if (92 <= number && number <= 95)
+            _cmds.Add(8, Command.Increment, 48 + number % 10);
+        else if (124 <= number && number <= 125)
+            _cmds.Add(1, '2', number - (124 - '4'));
+        else
+            _cmds.Add(number);
+
+        while (_digits.Count > 0)
+            _cmds.Add(_digits.Pop());
 
         if (isNegative)
             _cmds.Add(Command.Negate);
@@ -173,7 +172,7 @@ class Grid
             if (put ? (value & 255) == (oldValue & 255) : value == oldValue)
                 return;
 
-        if (put && Configuration.OptimizePut && value.Sign >= 0 && value <= 126)
+        if (put && Configuration.ValueEncoding == ValueEncoding.ForceChars && value.Sign >= 0 && value <= 126)
         {
             int x = (int)value;
             if (x == 0 || 9 <= x && x <= 13 || 32 <= x && x <= 64 || 91 <= x && x <= 96 || 123 <= x && x <= 126)
