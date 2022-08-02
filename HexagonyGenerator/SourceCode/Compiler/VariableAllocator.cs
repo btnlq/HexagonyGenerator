@@ -36,6 +36,12 @@ class VariableAllocator
             _scopes[variable.Location].End = _index;
     }
 
+    private void TryPut(Bytecode.ISymbol? symbol)
+    {
+        if (symbol is Bytecode.VariableSymbol variable)
+            Put(variable.Variable);
+    }
+
     private void ScanBlock(Block block)
     {
         foreach (var statement in block)
@@ -45,10 +51,8 @@ class VariableAllocator
                 case SimpleAction<Bytecode.Assignment> action:
                 {
                     var assignment = action.Action;
-                    if (assignment.Left is Bytecode.Variable left)
-                        Put(left);
-                    if (assignment.Right is Bytecode.Variable right)
-                        Put(right);
+                    TryPut(assignment.Left);
+                    TryPut(assignment.Right);
                     _index++;
                     Put(assignment.Dest);
                     _index++;
@@ -56,8 +60,7 @@ class VariableAllocator
                 }
                 case SimpleAction<Bytecode.Writing> action:
                 {
-                    if (action.Action.Symbol is Bytecode.Variable variable)
-                        Put(variable);
+                    TryPut(action.Action.Symbol);
                     _index++;
                     break;
                 }
@@ -73,7 +76,7 @@ class VariableAllocator
                 }
                 case Conditional conditional:
                 {
-                    Put(conditional.Variable);
+                    TryPut(conditional.Symbol);
                     _index++;
                     if (conditional.TrueBranch != null)
                         ScanBlock(conditional.TrueBranch);

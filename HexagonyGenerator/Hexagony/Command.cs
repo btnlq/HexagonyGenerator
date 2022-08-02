@@ -1,6 +1,6 @@
 ﻿namespace HexagonyGenerator.Hexagony;
 
-class Command
+static class Command
 {
     // Special
     public const char Nop = '.';

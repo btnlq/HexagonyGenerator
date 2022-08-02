@@ -52,7 +52,7 @@ class Shape
     {
         if (column < _size + 2) // 1st row
         {
-            column -= 1;
+            column--;
             return _firstIsMain || column >= _size - 1 ? 2 * _size - 2 - NopHeight(column) : _size - 3;
         }
         else // 2nd row

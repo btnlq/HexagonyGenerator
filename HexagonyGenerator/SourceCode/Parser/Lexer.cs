@@ -108,7 +108,7 @@ class Lexer
                         }
                         if (good)
                             continue;
-                        throw new ParserException($"Unclosed block comment", lineId, column);
+                        throw new ParserException("Unclosed block comment", lineId, column);
                     }
                     goto case '*';
                 case '+':

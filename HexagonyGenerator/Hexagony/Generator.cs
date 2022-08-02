@@ -2,7 +2,7 @@
 
 using Bytecode;
 
-class Generator
+static class Generator
 {
     private static int CanWrite(Writer.Writer writer, int size, bool firstIsMain)
     {

@@ -156,8 +156,8 @@ class Runner
             if (actualLine != expectedLine)
             {
                 System.Console.WriteLine($"# Actual and expected outputs differ on line {i + 1}:");
-                System.Console.WriteLine($"#   Actual: " + actualLine);
-                System.Console.WriteLine($"# Expected: " + expectedLine);
+                System.Console.WriteLine("#   Actual: " + actualLine);
+                System.Console.WriteLine("# Expected: " + expectedLine);
                 return;
             }
         }

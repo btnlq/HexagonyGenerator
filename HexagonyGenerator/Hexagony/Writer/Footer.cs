@@ -78,7 +78,7 @@ class FooterGroup
     public Footer this[int nextWrap] => _footers[nextWrap < 3 ? nextWrap : 0];
 }
 
-class Footers
+static class Footers
 {
     /*
 

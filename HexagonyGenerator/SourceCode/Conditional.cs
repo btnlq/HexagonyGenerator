@@ -4,14 +4,14 @@ using Bytecode;
 
 class Conditional : IStatement
 {
-    public readonly Variable Variable;
+    public readonly ModifiableSymbol Symbol;
     public readonly ConditionType Type;
     public readonly Block? TrueBranch;
     public readonly Block? FalseBranch;
 
-    public Conditional(Variable variable, ComparisonOp op, Block? trueBlock, Block? falseBlock)
+    public Conditional(ModifiableSymbol symbol, ComparisonOp op, Block? trueBlock, Block? falseBlock)
     {
-        Variable = variable;
+        Symbol = symbol;
         (Type, bool reversed) = op switch
         {
             ComparisonOp.Gt => (ConditionType.Positive, false),

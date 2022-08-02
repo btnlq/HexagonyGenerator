@@ -71,7 +71,7 @@ static class ContinuationsOptimizer
                 SkipEmpty(conditionalContinuation.FalseBranch, out var falseBranch))
                 procedure.Continuation = conditionalContinuation =
                     new ConditionalContinuation(
-                        conditionalContinuation.ConditionVar, conditionalContinuation.Type, trueBranch, falseBranch);
+                        conditionalContinuation.ConditionSymbol, conditionalContinuation.Type, trueBranch, falseBranch);
             Add(conditionalContinuation.TrueBranch);
             Add(conditionalContinuation.FalseBranch);
 

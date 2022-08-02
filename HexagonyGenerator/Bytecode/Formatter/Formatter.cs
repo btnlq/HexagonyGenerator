@@ -46,28 +46,36 @@ class Formatter
             _sb.Append(integer.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
-    private void AppendReading(Reading reading)
-    {
-        _sb.Append(reading.Type == VariableType.Int ?
+    private static string ReadingKeyword(VariableType type) =>
+        type == VariableType.Int ?
             SourceCode.Parser.Keyword.ReadInt :
-            SourceCode.Parser.Keyword.ReadByte);
-    }
+            SourceCode.Parser.Keyword.ReadByte;
+
+    private static readonly string[] _modifierPrefix = { "-", "(", "(", "(10*" };
+    private static readonly string[] _modifierSuffix = { "", "+1)", "-1)", ")" };
 
     private void AppendSymbol(ISymbol symbol, bool asChar = false)
     {
-        switch (symbol)
+        if (symbol is Integer integer)
+            AppendInteger(integer, asChar);
+        else
         {
-            case Variable variable:
-                AppendVariable(variable);
-                break;
-            case Integer integer:
-                AppendInteger(integer, asChar);
-                break;
-            case Reading reading:
-                AppendReading(reading);
-                break;
-            default:
-                throw new UnexpectedDefaultException();
+            var modifiableSymbol = (ModifiableSymbol)symbol;
+            foreach (var modifier in modifiableSymbol.ModifiersReverse)
+                _sb.Append(_modifierPrefix[(int)modifier]);
+            switch (symbol)
+            {
+                case VariableSymbol variable:
+                    AppendVariable(variable.Variable);
+                    break;
+                case ReadingSymbol reading:
+                    _sb.Append(ReadingKeyword(reading.Type));
+                    break;
+                default:
+                    throw new UnexpectedDefaultException();
+            }
+            foreach (var modifier in modifiableSymbol.Modifiers)
+                _sb.Append(_modifierSuffix[(int)modifier]);
         }
     }
 
@@ -84,6 +92,8 @@ class Formatter
         });
     }
 
+    private static readonly string[] _modifierShort = { " *= -1", "++", "--", " *= 10" };
+
     private Formatter(Program program)
     {
         _start = program.Start;
@@ -99,25 +109,31 @@ class Formatter
                 {
                     case Assignment assignment:
                         AppendVariable(assignment.Dest);
-                        if (assignment.Left is Variable variable && assignment.Dest.Location == variable.Location
-                            && assignment.Right != null)
+                        if (assignment.Left is VariableSymbol left && assignment.Dest.Location == left.Variable.Location)
                         {
-                            _sb.Append(' ');
-                            AppendOp(assignment.Operator);
-                            _sb.Append("= ");
-                            AppendSymbol(assignment.Right);
-                        }
-                        else
-                        {
-                            _sb.Append(" = ");
-                            AppendSymbol(assignment.Left);
-                            if (assignment.Right != null)
+                            if (assignment.Right != null && left.ModifiersCount == 0)
                             {
                                 _sb.Append(' ');
                                 AppendOp(assignment.Operator);
-                                _sb.Append(' ');
+                                _sb.Append("= ");
                                 AppendSymbol(assignment.Right);
+                                break;
                             }
+                            if (assignment.Right == null && left.ModifiersCount == 1)
+                            {
+                                _sb.Append(_modifierShort[(int)left.Modifiers.First()]);
+                                break;
+                            }
+                        }
+
+                        _sb.Append(" = ");
+                        AppendSymbol(assignment.Left);
+                        if (assignment.Right != null)
+                        {
+                            _sb.Append(' ');
+                            AppendOp(assignment.Operator);
+                            _sb.Append(' ');
+                            AppendSymbol(assignment.Right);
                         }
                         break;
                     case Writing writing:
@@ -129,7 +145,7 @@ class Formatter
                         _sb.Append(')');
                         break;
                     case Reading reading:
-                        AppendReading(reading);
+                        _sb.Append(ReadingKeyword(reading.Type));
                         break;
                     default:
                         throw new UnexpectedDefaultException();
@@ -144,7 +160,7 @@ class Formatter
                     AppendName(continuation.Next);
                     break;
                 case ConditionalContinuation continuation:
-                    AppendVariable(continuation.ConditionVar);
+                    AppendSymbol(continuation.ConditionSymbol);
                     _sb.Append(' ');
                     _sb.Append(continuation.Type switch
                     {

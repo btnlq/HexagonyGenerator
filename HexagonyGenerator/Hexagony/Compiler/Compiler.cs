@@ -22,7 +22,7 @@ static class Compiler
         switch (procedure.Continuation)
         {
             case Bytecode.ConditionalContinuation continuation:
-                memory.MoveTo(continuation.ConditionVar);
+                memory.SetAny(continuation.ConditionSymbol);
                 return new(main,
                     SetIp(continuation.TrueBranch),
                     SetIp(continuation.FalseBranch),

@@ -8,8 +8,6 @@ class SimpleActionList
 
     public IEnumerable<IStatement> Statements => _statements;
 
-    public SimpleActionList() { }
-
     public void AddAssignment(Assignment assignment)
         => _statements.Add(assignment.AsStatement());
 

@@ -1,8 +1,5 @@
 ﻿namespace HexagonyGenerator.Bytecode;
 
-// ISymbol = Variable | Integer | Reading
-interface ISymbol { }
-
 class Assignment : IAction
 {
     public readonly Variable Dest;

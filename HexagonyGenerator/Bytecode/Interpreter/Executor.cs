@@ -1,6 +1,6 @@
 ﻿namespace HexagonyGenerator.Bytecode.Interpreter;
 
-class Executor
+static class Executor
 {
     public static string Execute(Program program, Hexagony.Interpreter.Reader reader, bool optimize, out int executed)
     {
@@ -23,7 +23,7 @@ class Executor
 
             if (procedure.Continuation is ConditionalContinuation continuation)
             {
-                var value = memory[continuation.ConditionVar];
+                var value = memory.Get(continuation.ConditionSymbol);
                 bool isTrue = continuation.Type switch
                 {
                     ConditionType.Positive => value > 0,

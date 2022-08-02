@@ -85,70 +85,107 @@ static class BooleanExpression
             Comparison = comparison;
         }
 
-        private static bool IsZeroComparison(ComparisonOp op, Integer integer, out ComparisonOp simpleOp)
+        public IEnumerable<IStatement> ToStatement(Block? trueBlock, Block? falseBlock)
         {
-            if (integer.Value.IsZero)
+            return new ConditionBuilder(trueBlock, falseBlock).ToStatement(Comparison);
+        }
+
+        private struct ConditionBuilder
+        {
+            private readonly SimpleActionList Actions = new();
+            private readonly Block? TrueBlock;
+            private readonly Block? FalseBlock;
+
+            public ConditionBuilder(Block? trueBlock, Block? falseBlock)
             {
-                simpleOp = op;
-                return true;
+                TrueBlock = trueBlock;
+                FalseBlock = falseBlock;
             }
-            else if (Value.Abs(integer.Value).IsOne)
+
+            private IEnumerable<IStatement> Build(ModifiableSymbol symbol, ComparisonOp op) =>
+                Actions.Statements.Append(new Conditional(symbol, op, TrueBlock, FalseBlock));
+
+            private static bool Bad(ComparisonOp op) => op == ComparisonOp.Ge || op == ComparisonOp.Lt;
+
+            private IEnumerable<IStatement>? TryBuild(ModifiableSymbol symbol, ComparisonOp op, Integer integer)
             {
+                if (Value.Abs(integer.Value) > 2)
+                    return null;
+
                 int value = (int)integer.Value;
+
                 if (value > 0)
                 {
-                    if (op == ComparisonOp.Lt) // x < 1
+                    if (op == ComparisonOp.Ge || op == ComparisonOp.Lt)
                     {
-                        simpleOp = ComparisonOp.Le; // x <= 0
-                        return true;
+                        value--;
+                        op ^= ComparisonOp.Eq;
                     }
+                }
+                else if (value < 0)
+                {
+                    if (op == ComparisonOp.Gt || op == ComparisonOp.Le)
+                    {
+                        value++;
+                        op ^= ComparisonOp.Eq;
+                    }
+                }
+
+                if (value == 1)
+                    Modifier.Decrement(symbol);
+                else if (value == -1)
+                    Modifier.Increment(symbol);
+                else if (value != 0)
+                    return null;
+
+                if (symbol.ModifiersCount > 0 && Bad(op))
+                {
+                    Modifier.Negate(symbol);
+                    op = op.Reverse();
+                }
+
+                return Build(symbol, op);
+            }
+
+            private IEnumerable<IStatement> Build(ISymbol left, ComparisonOp op, ISymbol right)
+            {
+                if (Bad(op))
+                {
+                    (left, right) = (right, left);
+                    op = op.Reverse();
+                }
+
+                var variable = Compiler.VariableAllocator.New();
+                Actions.AddAssignment(new Assignment(variable, left, BinOp.Sub, right));
+                return Build(new VariableSymbol(variable), op);
+            }
+
+            public IEnumerable<IStatement> ToStatement(Comparison comparison)
+            {
+                var left = comparison.Left.ToSymbol(Actions);
+                var right = comparison.Right.ToSymbol(Actions);
+
+                IEnumerable<IStatement>? statements = null;
+
+                if (left is Integer leftValue)
+                {
+                    if (right is Integer rightValue)
+                    {
+                        int sign = leftValue.Value.CompareTo(rightValue.Value);
+                        bool result = comparison.Op.Has(sign);
+                        statements = (result ? TrueBlock : FalseBlock) ?? Enumerable.Empty<IStatement>();
+                    }
+                    else
+                        statements = TryBuild((ModifiableSymbol)right, comparison.Op.Reverse(), leftValue);
                 }
                 else
                 {
-                    if (op == ComparisonOp.Gt) // x > -1
-                    {
-                        simpleOp = ComparisonOp.Ge; // x >= 0
-                        return true;
-                    }
+                    if (right is Integer rightValue)
+                        statements = TryBuild((ModifiableSymbol)left, comparison.Op, rightValue);
                 }
-            }
-            simpleOp = default;
-            return false;
-        }
 
-        public IEnumerable<IStatement> ToStatement(Block? trueBlock, Block? falseBlock)
-        {
-            SimpleActionList actions = new();
-            var left = Comparison.Left.ToSymbol(actions);
-            var right = Comparison.Right.ToSymbol(actions);
-
-            if (left is Integer leftValue)
-            {
-                if (right is Integer rightValue)
-                {
-                    int sign = leftValue.Value.CompareTo(rightValue.Value);
-                    bool result = Comparison.Op.Has(sign);
-                    return (result ? trueBlock : falseBlock) ?? Enumerable.Empty<IStatement>();
-                }
-                else if (right is Variable rightVariable)
-                {
-                    if (IsZeroComparison(Comparison.Op.Reverse(), leftValue, out var op))
-                        return actions.Statements.Append(new Conditional(rightVariable, op, trueBlock, falseBlock));
-                }
+                return statements ?? Build(left, comparison.Op, right);
             }
-            else if (left is Variable leftVariable)
-            {
-                if (right is Integer rightValue)
-                {
-                    if (IsZeroComparison(Comparison.Op, rightValue, out var op))
-                        return actions.Statements.Append(new Conditional(leftVariable, op, trueBlock, falseBlock));
-                }
-            }
-
-            var variable = Compiler.VariableAllocator.New();
-            return actions.Statements
-                .Append(new Assignment(variable, left, BinOp.Sub, right).AsStatement())
-                .Append(new Conditional(variable, Comparison.Op, trueBlock, falseBlock));
         }
     }
 }

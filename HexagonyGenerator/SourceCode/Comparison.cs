@@ -14,6 +14,7 @@ class Comparison
     }
 }
 
+[System.Flags]
 enum ComparisonOp
 {
     Lt = 1,

@@ -1,6 +1,6 @@
 ﻿namespace HexagonyGenerator.Bytecode;
 
-class Variable : ISymbol
+class Variable
 {
     public /*readonly*/ int Location;
 

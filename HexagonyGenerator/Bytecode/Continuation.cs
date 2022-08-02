@@ -17,17 +17,17 @@ class Continuation : IContinuation
 
 enum ConditionType { Positive, Negative, Nonzero }
 
-// ConditionVar is Type ? goto TrueBranch : goto FalseBranch
+// ConditionSymbol is Type ? goto TrueBranch : goto FalseBranch
 class ConditionalContinuation : IContinuation
 {
-    public readonly Variable ConditionVar;
+    public readonly ModifiableSymbol ConditionSymbol;
     public readonly ConditionType Type;
     public readonly Procedure TrueBranch;
     public readonly Procedure FalseBranch;
 
-    public ConditionalContinuation(Variable conditionVar, ConditionType type, Procedure trueBranch, Procedure falseBranch)
+    public ConditionalContinuation(ModifiableSymbol conditionSymbol, ConditionType type, Procedure trueBranch, Procedure falseBranch)
     {
-        ConditionVar = conditionVar;
+        ConditionSymbol = conditionSymbol;
         Type = type;
         TrueBranch = trueBranch;
         FalseBranch = falseBranch;

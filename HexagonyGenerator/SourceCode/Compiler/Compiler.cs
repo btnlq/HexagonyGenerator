@@ -52,7 +52,7 @@ class Compiler
                         falseBranch = conditionalNext;
 
                     current.Continuation = new ConditionalContinuation(
-                        conditional.Variable, conditional.Type, trueBranch, falseBranch);
+                        conditional.Symbol, conditional.Type, trueBranch, falseBranch);
                     current = conditionalNext;
                     break;
                 }

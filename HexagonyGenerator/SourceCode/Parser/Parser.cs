@@ -79,7 +79,7 @@ class Parser
             ? _stack.GetBlock(blockNameToken.Text) ??
                 throw new ParserException($"No enclosing loops labeled '{blockNameToken.Text}'", blockNameToken)
             : _stack.GetTopLoop() ??
-                throw new ParserException($"No enclosing loop", keywordToken);
+                throw new ParserException("No enclosing loop", keywordToken);
         Read(TokenType.Semicolon);
 
         Goto @goto = new(type, block);
@@ -286,7 +286,7 @@ class Parser
                     "^" => throw new ParserException("Power operator operands must be constants", assignOpToken),
                     _ => throw new UnexpectedDefaultException()
                 };
-                expr = ArithmeticExpression.Create(ArithmeticExpression.Create(dest), op, expr);
+                expr = ArithmeticExpression.Create(ArithmeticExpression.Create(new VariableSymbol(dest)), op, expr);
             }
             var actions = new SimpleActionList();
             expr.AssignTo(dest, actions);
@@ -295,9 +295,11 @@ class Parser
         else
         {
             var opText = Read(TokenType.IncDec).Text;
-            var op = opText == "++" ? BinOp.Add : BinOp.Sub;
             var dest = GetVariable(destToken);
-            return new Assignment(dest, dest, op, new Integer(1)).AsStatement();
+
+            ModifiableSymbol symbol = new VariableSymbol(dest);
+            symbol = opText == "++" ? Modifier.Increment(symbol) : Modifier.Decrement(symbol);
+            return new Assignment(dest, symbol).AsStatement();
         }
     }
 
@@ -320,20 +322,29 @@ class Parser
 
     private IArithmeticExpression ParseArithmeticTerm()
     {
-        var expression = ParseArithmeticPower();
+        var expression = ParseArithmeticFactor();
 
         while (true)
         {
             if (TryRead(TokenType.ArithmeticOperator, "*") != null)
-                expression = ArithmeticExpression.Create(expression, BinOp.Mul, ParseArithmeticPower());
+                expression = ArithmeticExpression.Create(expression, BinOp.Mul, ParseArithmeticFactor());
             else if (TryRead(TokenType.ArithmeticOperator, "/") != null)
-                expression = ArithmeticExpression.Create(expression, BinOp.Div, ParseArithmeticPower());
+                expression = ArithmeticExpression.Create(expression, BinOp.Div, ParseArithmeticFactor());
             else if (TryRead(TokenType.ArithmeticOperator, "%") != null)
-                expression = ArithmeticExpression.Create(expression, BinOp.Mod, ParseArithmeticPower());
+                expression = ArithmeticExpression.Create(expression, BinOp.Mod, ParseArithmeticFactor());
             else
                 break;
         }
 
+        return expression;
+    }
+
+    private IArithmeticExpression ParseArithmeticFactor()
+    {
+        bool hasSign = TryRead(TokenType.ArithmeticOperator, "-") != null;
+        var expression = ParseArithmeticPower();
+        if (hasSign)
+            expression = ArithmeticExpression.Create(ArithmeticExpression.Create(new Integer(0)), BinOp.Sub, expression);
         return expression;
     }
 
@@ -382,21 +393,17 @@ class Parser
     private ISymbol ParseSymbol()
     {
         return
-            TryRead(TokenType.Keyword, Keyword.ReadByte) != null ? new Reading(VariableType.Byte) :
-            TryRead(TokenType.Keyword, Keyword.ReadInt) != null ? new Reading(VariableType.Int) :
-            TryRead(TokenType.Identifier, out var variableToken) ? GetVariable(variableToken) :
+            TryRead(TokenType.Keyword, Keyword.ReadByte) != null ? new ReadingSymbol(VariableType.Byte) :
+            TryRead(TokenType.Keyword, Keyword.ReadInt) != null ? new ReadingSymbol(VariableType.Int) :
+            TryRead(TokenType.Identifier, out var variableToken) ? new VariableSymbol(GetVariable(variableToken)) :
             ParseInteger();
     }
 
     private Integer ParseInteger()
     {
-        bool hasSign = TryRead(TokenType.ArithmeticOperator, "-") != null;
-
         Value value = TryRead(TokenType.Integer, out Token token) ?
             ValueParser.Parse(token.Text) :
             char.ConvertToUtf32(Unescape(Read(TokenType.Character).Text), 1);
-        if (hasSign)
-            value = -value;
         return new(value);
     }
 

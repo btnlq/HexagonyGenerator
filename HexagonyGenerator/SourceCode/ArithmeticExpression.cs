@@ -58,18 +58,85 @@ static class ArithmeticExpression
             Op = op;
         }
 
+        private static bool IsSmallInt(Integer integer, out int value)
+        {
+            var bigValue = integer.Value;
+            bool isSmall = Value.Abs(bigValue) <= 10;
+            value = isSmall ? (int)bigValue : 0;
+            return isSmall;
+        }
+
+        private ISymbol? TryOptimize(ISymbol leftSymbol, ISymbol rightSymbol)
+        {
+            if (leftSymbol is Integer leftInteger)
+            {
+                if (rightSymbol is Integer rightInteger)
+                {
+                    var value = Op.Compute(leftInteger.Value, rightInteger.Value);
+                    return new Integer(value);
+                }
+                else
+                {
+                    if (IsSmallInt(leftInteger, out int leftValue))
+                    {
+                        var symbol = (ModifiableSymbol)rightSymbol;
+                        return Op switch
+                        {
+                            BinOp.Add => Modifier.Add(symbol, leftValue),
+                            BinOp.Sub => Modifier.Add(Modifier.Negate(symbol), leftValue),
+                            BinOp.Mul => Modifier.Mul(symbol, leftValue),
+                            _ => null,
+                        };
+                    }
+                }
+            }
+            else
+            {
+                if (rightSymbol is Integer rightInteger)
+                {
+                    if (IsSmallInt(rightInteger, out int rightValue))
+                    {
+                        var symbol = (ModifiableSymbol)leftSymbol;
+                        return Op switch
+                        {
+                            BinOp.Add => Modifier.Add(symbol, rightValue),
+                            BinOp.Sub => Modifier.Add(symbol, -rightValue),
+                            BinOp.Mul => Modifier.Mul(symbol, rightValue),
+                            BinOp.Div => Modifier.Div(symbol, rightValue),
+                            BinOp.Mod => Modifier.Mod(symbol, rightValue),
+                            _ => null,
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public ISymbol ToSymbol(SimpleActionList actions)
         {
+            var left = Left.ToSymbol(actions);
+            var right = Right.ToSymbol(actions);
+
+            var symbol = TryOptimize(left, right);
+            if (symbol != null)
+                return symbol;
+
             var variable = Compiler.VariableAllocator.New();
-            AssignTo(variable, actions);
-            return variable;
+            actions.AddAssignment(new(variable, left, Op, right));
+            return new VariableSymbol(variable);
         }
 
         public void AssignTo(Variable variable, SimpleActionList actions)
         {
             var left = Left.ToSymbol(actions);
             var right = Right.ToSymbol(actions);
-            actions.AddAssignment(new(variable, left, Op, right));
+
+            var symbol = TryOptimize(left, right);
+            actions.AddAssignment(symbol != null ?
+                new(variable, symbol) :
+                new(variable, left, Op, right)
+            );
         }
     }
 
