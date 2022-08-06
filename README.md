@@ -84,6 +84,10 @@ for outer_loop (i=2; i<=100; i++) { // labeled `for`
 
 ### Generation Tips
 
+If there are no `get` or `read` calls in a program,
+the generator assumes that input is empty
+and uses these commands to get `-1` and `0` values.
+
 Generated hexagon consists of "procedures", each procedure requires at least 3 columns.
 Each condition (`if`, `for`, `while`) adds 1 or 2 more procedures.
 So a large number of `if-else` results in a large hexagon.

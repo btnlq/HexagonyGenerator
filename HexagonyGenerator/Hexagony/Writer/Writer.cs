@@ -11,31 +11,39 @@ class Writer
         _startIndex = startIndex;
     }
 
-    private bool WriteSnake(CommandsEnumerator commands, bool continued = true)
+    private bool WriteSnake(CommandsEnumerator commands, int startPos)
     {
         while (columns.Available >= 2)
         {
-            int columnHeight = columns.Height(0);
-            if (columnHeight < 3)
+            var footer = Footers.Snake[columns.NextWrap];
+            int minPosition = footer.MinPosition(startPos, 1);
+            int maxPosition = footer.MaxPosition(columns.Height(0), columns.Height(1));
+
+            if (minPosition > maxPosition)
                 return false;
 
-            int wrapShift = columns.NextWrap == 1 ? 1 : 0;
+            int column0 = footer.Top(0) - startPos;
+            int column1 = footer.Top(1);
 
-            bool fit = continued && commands.Count <= 2 * columnHeight - 4 - wrapShift;
-            int height = fit ? Math.Max(commands.Count + 5 + wrapShift >> 1, 3) : columnHeight - wrapShift;
-            if (continued) columns[0, 0] = '<';
-            int continuedShift = continued ? 1 : 0;
-            columns.Write(0, continuedShift, Dir.Down, commands, height - 1 - continuedShift);
-            columns[0, height - 1] = '_';
-            height += wrapShift;
-            columns[1, height - 2] = '|';
-            columns.Write(1, height - 3, Dir.Up, commands, fit ? height - 2 : height - 3);
+            bool fit = startPos > 0 && commands.Count <= 2 * maxPosition + column0 + column1;
+
             if (!fit)
+            {
+                if (columns.Available < 4)
+                    return false;
                 columns[1, 0] = '/';
+                columns[2, 0] = '<';
+            }
+
+            int position = fit ? Math.Max(commands.Count - column0 - column1 + 1 >> 1, minPosition) : maxPosition;
+            footer.Write(columns, position);
+            columns.Write(0, startPos, Dir.Down, commands, position + column0);
+            columns.Write(1, position + column1 - 1, Dir.Up, commands, position + column1 - (fit ? 0 : 1));
+
             columns.Shift(2);
             if (fit)
                 return true;
-            continued = true;
+            startPos = 1;
         }
 
         return false;
@@ -63,7 +71,7 @@ class Writer
         }
         else
         {
-            return WriteSnake(main, false);
+            return WriteSnake(main, 0);
         }
     }
 
@@ -116,7 +124,10 @@ class Writer
             columns.Write(2, last, Dir.Up, main, last);
             columns[2, 0] = '/';
             columns.Shift(3);
-            return WriteSnake(main);
+            if (columns.Available < 2)
+                return false;
+            columns[0, 0] = '<';
+            return WriteSnake(main, 1);
         }
     }
 
@@ -138,26 +149,8 @@ class Writer
 
         var main = procedure.Main.Reversed();
         int mainStart = minPosition + footer.Bottom(2);
-        int height = Math.Clamp(main.Count + mainStart + 4 - wrapShift >> 1, mainStart + 1, columns.Height(2) - wrapShift);
-
-        columns.Write(2, mainStart, Dir.Down, main, height - mainStart - 1);
-        columns[2, height - 1] = '_';
-        height += wrapShift;
-        columns[3, height - 2] = '|';
-
-        if (main.Count <= height - 2)
-        {
-            columns.Write(3, height - 3, Dir.Up, main);
-            columns.Shift(4);
-            return true;
-        }
-        else
-        {
-            columns.Write(3, height - 3, Dir.Up, main, height - 3);
-            columns[3, 0] = '/';
-            columns.Shift(4);
-            return WriteSnake(main);
-        }
+        columns.Shift(2);
+        return WriteSnake(main, mainStart);
     }
 
     private bool WriteConditional(Procedure procedure)

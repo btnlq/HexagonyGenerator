@@ -11,9 +11,9 @@ class Memory : IMemory
         _grid = new(cmds, memory._grid);
     }
 
-    public Memory(Commands cmds)
+    public Memory(Commands cmds, bool noInput)
     {
-        _grid = new(cmds, Register.Ip);
+        _grid = new(cmds, Register.Ip, noInput);
     }
 
     public void SetIp(int value)

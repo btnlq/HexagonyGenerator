@@ -34,22 +34,29 @@ static class ContinuationsOptimizer
 
     private static List<Procedure> OptimizeContinuations(Procedure start)
     {
-        List<Procedure> toOptimize = new();
+        List<Procedure> procedures = new();
+
+        if (start == Procedure.Exit)
+        {
+            procedures.Add(start);
+            return procedures;
+        }
 
         void Add(Procedure procedure)
         {
-            if (procedure != Procedure.Exit && procedure.Index == Procedure.NotIndexed)
+            if (procedure != Procedure.Exit)
             {
-                procedure.Index = toOptimize.Count;
-                toOptimize.Add(procedure);
+                if (procedure.Index == 0)
+                    procedures.Add(procedure);
+                procedure.Index++;
             }
         }
 
         Add(start);
 
-        for (int i = 0; i < toOptimize.Count; i++)
+        for (int i = 0; i < procedures.Count; i++)
         {
-            var procedure = toOptimize[i];
+            var procedure = procedures[i];
 
             if (procedure.Continuation is Continuation continuation)
             {
@@ -78,9 +85,24 @@ static class ContinuationsOptimizer
             // TODO: check if TrueBranch == FalseBranch
         }
 
-        if (toOptimize.Count == 0)
-            toOptimize.Add(Procedure.Exit);
-        return toOptimize;
+        foreach (var procedure in procedures)
+        {
+            while (procedure.Continuation is Continuation continuation && continuation.Next.Index == 1)
+            {
+                var next = continuation.Next;
+                procedure.Actions.AddRange(next.Actions);
+                procedure.Continuation = next.Continuation;
+                next.Index = 0;
+            }
+        }
+
+        procedures.RemoveAll(procedure => procedure.Index == 0);
+
+        int index = 0;
+        foreach (var procedure in procedures)
+            procedure.Index = index++;
+
+        return procedures;
     }
 
     private static Procedure OptimizeStart(Procedure start)

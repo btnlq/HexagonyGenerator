@@ -25,7 +25,8 @@ static class Generator
 
     public static Hexagon Generate(Program program)
     {
-        var procedures = program.Procedures.ConvertAll(Compiler.Compiler.Compile);
+        bool noInput = program.Procedures.All(Compiler.Compiler.NoInput);
+        var procedures = program.Procedures.ConvertAll(procedure => Compiler.Compiler.Compile(procedure, noInput));
         var writer = new Writer.Writer(procedures, program.Start.Index);
 
         int count = procedures.Count;

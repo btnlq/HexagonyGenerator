@@ -10,11 +10,9 @@ class Footer
 
     public Footer(params string[] columns)
     {
-        System.Diagnostics.Debug.Assert(columns.Length == 3);
-
         _columns = columns;
-        _shifts = new int[3];
-        for (int i = 0; i < 3; i++)
+        _shifts = new int[columns.Length];
+        for (int i = 0; i < columns.Length; i++)
         {
             var column = _columns[i];
             int shift = 0;
@@ -26,20 +24,20 @@ class Footer
 
     public int MaxPosition(params int[] columnHeights)
     {
-        System.Diagnostics.Debug.Assert(columnHeights.Length == 3);
+        System.Diagnostics.Debug.Assert(columnHeights.Length == _columns.Length);
 
         int pos = int.MaxValue;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < _columns.Length; i++)
             pos = Math.Min(pos, columnHeights[i] - _columns[i].Length);
         return pos;
     }
 
     public int MinPosition(params int[] columnCmds)
     {
-        System.Diagnostics.Debug.Assert(columnCmds.Length == 3);
+        System.Diagnostics.Debug.Assert(columnCmds.Length == _columns.Length);
 
         int pos = 0;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < _columns.Length; i++)
             pos = Math.Max(pos, columnCmds[i] - _shifts[i]);
         return pos;
     }
@@ -48,7 +46,7 @@ class Footer
     {
         if (!columns.Readonly)
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < _columns.Length; i++)
             {
                 var column = _columns[i];
                 for (int j = _shifts[i]; j < column.Length; j++)
@@ -62,20 +60,12 @@ class FooterGroup
 {
     private readonly Footer[] _footers;
 
-    public FooterGroup(Footer[] footers)
+    public FooterGroup(params Footer[] footers)
     {
         _footers = footers;
     }
 
-    public FooterGroup(string column0, string column1, string column2, string? column2shift2 = null)
-    {
-        Footer footer0 = new(column0, column1, column2);
-        Footer footer1 = new(column0[1..] + ".", column1, column2);
-        Footer footer2 = column2shift2 == null ? footer0 : new(column0, column1, column2shift2);
-        _footers = new[] { footer0, footer1, footer2 };
-    }
-
-    public Footer this[int nextWrap] => _footers[nextWrap < 3 ? nextWrap : 0];
+    public Footer this[int nextWrap] => _footers[nextWrap < _footers.Length ? nextWrap : 0];
 }
 
 static class Footers
@@ -101,24 +91,35 @@ static class Footers
                                  . . .                           . . a
     */
 
-    public static FooterGroup UnconditionalShort = new(new Footer[] {
+    public static FooterGroup Snake = new(
+        new(" _", "|"),
+        new("_.", "|")
+    );
+
+    public static FooterGroup UnconditionalShort = new(
         new("  _", " .", "|"),
-        new(" _.", " ..", "|"),
-        new(" _", "..", "|."),
-    });
+        new(" _.", " .", "|"),
+        new(" _", "..", "|")
+    );
+
+    private static FooterGroup Generate(string column0, string column1, string column2, string? column2shift2 = null) => new(
+        new(column0, column1, column2),
+        new(column0[1..] + ".", column1, column2),
+        new(column0, column1 + ".", column2shift2 ?? column2)
+    );
 
     private static readonly FooterGroup[] _downwardFooters =
     {
-        new(" _", ">", "/"),
-        new(" ~_", "~>", "~/"),
-        new("  _..>", " >$~>", "$<.~/", "$<.~/."),
+        Generate(" _", ">", "/"),
+        Generate(" ~_", "~>", "~/"),
+        Generate("  _..>", " >$~>", "$<.~/"),
     };
 
     private static readonly FooterGroup[] _upwardFooters =
     {
-        new(" _", ">", "<"),
-        new(" ~_", "~>", " <~"),
-        new(" _.|_", ">$~>", "<|.<~", "<.|<~"),
+        Generate(" _", ">", "<"),
+        Generate(" ~_", "~>", " <~"),
+        Generate(" _.|_", ">$~>", "<|.<~", "<.|<~"),
     };
 
     public static FooterGroup Downward(Bytecode.ConditionType type) => _downwardFooters[(int)type];

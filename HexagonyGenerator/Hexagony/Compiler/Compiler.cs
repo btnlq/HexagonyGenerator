@@ -2,10 +2,10 @@
 
 static class Compiler
 {
-    public static Procedure Compile(Bytecode.Procedure procedure)
+    public static Procedure Compile(Bytecode.Procedure procedure, bool noInput)
     {
         var main = new Commands();
-        var memory = new Memory(main);
+        var memory = new Memory(main, noInput);
         foreach (var action in procedure.Actions)
             action.ApplyTo(memory);
 
@@ -33,5 +33,40 @@ static class Compiler
             default:
                 throw new UnexpectedDefaultException();
         }
+    }
+
+    private class InputDetector : Bytecode.IMemory
+    {
+        public bool HasInput;
+
+        private void Check(Bytecode.ISymbol symbol)
+        {
+            if (symbol is Bytecode.ReadingSymbol)
+                HasInput = true;
+        }
+
+        public void Read(Bytecode.VariableType type) => HasInput = true;
+
+        public void Set(Bytecode.Variable dest, Bytecode.ISymbol value) => Check(value);
+
+        public void Set(Bytecode.Variable dest, Bytecode.ISymbol left, Bytecode.BinOp op, Bytecode.ISymbol right)
+        {
+            Check(left);
+            Check(right);
+        }
+
+        public void Write(Bytecode.ISymbol symbol, Bytecode.VariableType type) => Check(symbol);
+    }
+
+    public static bool NoInput(Bytecode.Procedure procedure)
+    {
+        var detector = new InputDetector();
+        foreach (var action in procedure.Actions)
+        {
+            action.ApplyTo(detector);
+            if (detector.HasInput)
+                return false;
+        }
+        return true;
     }
 }

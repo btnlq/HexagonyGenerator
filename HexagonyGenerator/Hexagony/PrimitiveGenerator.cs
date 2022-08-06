@@ -5,7 +5,7 @@ static class PrimitiveGenerator
     private static Commands Compile(Bytecode.Program program)
     {
         var commands = new Commands();
-        var memory = new Compiler.Memory(commands);
+        var memory = new Compiler.Memory(commands, Compiler.Compiler.NoInput(program.Start));
         foreach (var action in program.Start.Actions)
             action.ApplyTo(memory);
         return commands;

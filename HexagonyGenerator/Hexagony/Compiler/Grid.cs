@@ -19,13 +19,15 @@ class Grid
     private int _mpIndex;
     private MemDir _mpDir;
 
+    private readonly bool _noInput;
     private readonly Commands _cmds;
     private readonly Dictionary<int, Value> _cache = new();
 
-    public Grid(Commands cmds, Register register)
+    public Grid(Commands cmds, Register register, bool noInput)
     {
         _mpIndex = ((Edge)register).Index;
         _mpDir = (_mpIndex & 3) == 2 ? MemDir.Up : MemDir.Down;
+        _noInput = noInput;
         _cmds = cmds;
     }
 
@@ -33,6 +35,7 @@ class Grid
     {
         _mpIndex = grid._mpIndex;
         _mpDir = grid._mpDir;
+        _noInput = grid._noInput;
         _cmds = cmds;
     }
 
@@ -89,9 +92,14 @@ class Grid
                 }
                 else
                 {
-                    _cmds.Add('a');
-                    if (turnRight)
-                        _cmds.Add(Command.Negate);
+                    if (_noInput)
+                        _cmds.Add(turnRight ? Command.ReadByte : 'a');
+                    else
+                    {
+                        _cmds.Add('a');
+                        if (turnRight)
+                            _cmds.Add(Command.Negate);
+                    }
                 }
 
                 _cmds.Add(Command.Copy);
@@ -106,7 +114,18 @@ class Grid
 
     private void ReverseMp()
     {
-        _cmds.Add(Command.ReverseMp);
+        char cmd = Command.ReverseMp;
+
+        int count = _cmds.Count;
+        if (count >= 2)
+        {
+            int x = _cmds[count - 2];
+            int y = _cmds[count - 1];
+            if (x == '\'' && y == '{') { _cmds.Pop(2); cmd = '"'; }
+            if (x == '"' && y == '}') { _cmds.Pop(2); cmd = '\''; }
+        }
+
+        _cmds.Add(cmd);
         _mpDir = 1 - _mpDir;
     }
 
@@ -134,6 +153,20 @@ class Grid
 
         bool isNegative = value.Sign < 0;
         if (isNegative) value = -value;
+
+        if (_noInput)
+        {
+            if (value.IsZero)
+            {
+                _cmds.Add(Command.ReadInt);
+                return;
+            }
+            if (value.IsOne && isNegative)
+            {
+                _cmds.Add(Command.ReadByte);
+                return;
+            }
+        }
 
         bool useBytes = Configuration.ValueEncoding == ValueEncoding.Bytes;
 
