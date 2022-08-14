@@ -60,6 +60,13 @@ class Memory : IMemory
         this[dest] = op.Compute(Get(left), Get(right));
     }
 
+    public void Set(Variable dest, ModifiableSymbol conditionSymbol, ISymbol trueSymbol, ISymbol falseSymbol)
+    {
+        var trueValue = Get(trueSymbol);
+        var falseValue = Get(falseSymbol);
+        this[dest] = Get(conditionSymbol) > 0 ? trueValue : falseValue;
+    }
+
     public void Write(ISymbol symbol, VariableType type)
     {
         var value = Get(symbol);

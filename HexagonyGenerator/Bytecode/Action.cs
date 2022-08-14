@@ -1,6 +1,6 @@
 ﻿namespace HexagonyGenerator.Bytecode;
 
-// IAction = Assignment | Writing | Reading
+// IAction = Assignment | ConditionalAssignment | Writing | Reading
 interface IAction
 {
     void ApplyTo(IMemory memory);

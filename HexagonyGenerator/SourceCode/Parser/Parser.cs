@@ -341,7 +341,9 @@ class Parser
 
     private IArithmeticExpression ParseArithmeticFactor()
     {
-        bool hasSign = TryRead(TokenType.ArithmeticOperator, "-") != null;
+        bool hasSign = false;
+        while (TryRead(TokenType.ArithmeticOperator, "-") != null)
+            hasSign ^= true;
         var expression = ParseArithmeticPower();
         if (hasSign)
             expression = ArithmeticExpression.Create(ArithmeticExpression.Create(new Integer(0)), BinOp.Sub, expression);
@@ -354,7 +356,7 @@ class Parser
 
         var token = TryRead(TokenType.ArithmeticOperator, "^");
         if (token != null)
-            expression = ArithmeticExpression.CreatePower(expression, ParseArithmeticPower(), out string error) ??
+            expression = ArithmeticExpression.CreatePower(expression, ParseArithmeticFactor(), out string error) ??
                 throw new ParserException(error, token);
 
         return expression;
@@ -385,6 +387,20 @@ class Parser
                 result = ArithmeticExpression.Create(array[i], BinOp.Add,
                     ArithmeticExpression.Create(arrayBase, BinOp.Mul, result));
             return result;
+        }
+
+        if (TryRead(TokenType.Keyword, Keyword.If) != null)
+        {
+            Read(TokenType.LParen);
+            var comparison = ParseComparison();
+            var token = Read(TokenType.Comma);
+            var trueValue = ParseArithmeticSum();
+            Read(TokenType.Comma);
+            var falseValue = ParseArithmeticSum();
+            Read(TokenType.RParen);
+            if (comparison.Op is ComparisonOp.Eq or ComparisonOp.Ne)
+                throw new ParserException("'==' and '!=' operators are not supported in conditional expression", token);
+            return ArithmeticExpression.Create(comparison, trueValue, falseValue);
         }
 
         return ArithmeticExpression.Create(ParseSymbol());

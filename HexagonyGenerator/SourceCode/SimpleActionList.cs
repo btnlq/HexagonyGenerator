@@ -10,6 +10,8 @@ class SimpleActionList
 
     public void AddAssignment(Assignment assignment)
         => _statements.Add(assignment.AsStatement());
+    public void AddConditionalAssignment(ConditionalAssignment assignment)
+        => _statements.Add(assignment.AsStatement());
 
     public void AddWriting(VariableType type, ISymbol symbol)
     {

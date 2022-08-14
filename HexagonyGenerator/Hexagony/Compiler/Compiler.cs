@@ -55,6 +55,13 @@ static class Compiler
             Check(right);
         }
 
+        public void Set(Bytecode.Variable dest, Bytecode.ModifiableSymbol conditionSymbol, Bytecode.ISymbol trueValue, Bytecode.ISymbol falseValue)
+        {
+            Check(conditionSymbol);
+            Check(trueValue);
+            Check(falseValue);
+        }
+
         public void Write(Bytecode.ISymbol symbol, Bytecode.VariableType type) => Check(symbol);
     }
 

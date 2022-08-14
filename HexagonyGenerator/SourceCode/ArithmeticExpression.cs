@@ -6,6 +6,7 @@ interface IArithmeticExpression
 {
     ISymbol ToSymbol(SimpleActionList actions);
     void AssignTo(Variable variable, SimpleActionList actions);
+    Integer? AsInteger => null;
 }
 
 static class ArithmeticExpression
@@ -13,16 +14,16 @@ static class ArithmeticExpression
     public static IArithmeticExpression Create(ISymbol symbol) => new SymbolExpression(symbol);
     public static IArithmeticExpression Create(IArithmeticExpression left, BinOp op, IArithmeticExpression right)
     {
-        if (left is SymbolExpression { Symbol: Integer leftInteger } &&
-            right is SymbolExpression { Symbol: Integer rightInteger })
+        Integer? leftInteger, rightInteger;
+        if ((leftInteger = left.AsInteger) != null && (rightInteger = right.AsInteger) != null)
             return new SymbolExpression(new Integer(op.Compute(leftInteger.Value, rightInteger.Value)));
         else
             return new BinaryExpression(left, op, right);
     }
     public static IArithmeticExpression? CreatePower(IArithmeticExpression left, IArithmeticExpression right, out string error)
     {
-        if (!(left is SymbolExpression { Symbol: Integer leftInteger } &&
-            right is SymbolExpression { Symbol: Integer rightInteger }))
+        Integer? leftInteger, rightInteger;
+        if ((leftInteger = left.AsInteger) == null || (rightInteger = right.AsInteger) == null)
         {
             error = "Power operator operands must be constants";
             return null;
@@ -44,12 +45,14 @@ static class ArithmeticExpression
         error = null!;
         return new SymbolExpression(new Integer(Value.Pow(leftInteger.Value, (int)exponent)));
     }
+    public static IArithmeticExpression Create(Comparison comparison, IArithmeticExpression trueValue, IArithmeticExpression falseValue)
+        => new ConditionalExpression(comparison, trueValue, falseValue);
 
     private class BinaryExpression : IArithmeticExpression
     {
-        public IArithmeticExpression Left;
-        public IArithmeticExpression Right;
-        public BinOp Op;
+        private readonly IArithmeticExpression Left;
+        private readonly IArithmeticExpression Right;
+        private readonly BinOp Op;
 
         public BinaryExpression(IArithmeticExpression left, BinOp op, IArithmeticExpression right)
         {
@@ -142,7 +145,7 @@ static class ArithmeticExpression
 
     private class SymbolExpression : IArithmeticExpression
     {
-        public ISymbol Symbol;
+        private readonly ISymbol Symbol;
 
         public SymbolExpression(ISymbol symbol)
         {
@@ -157,6 +160,46 @@ static class ArithmeticExpression
         public void AssignTo(Variable variable, SimpleActionList actions)
         {
             actions.AddAssignment(new(variable, Symbol));
+        }
+
+        Integer? IArithmeticExpression.AsInteger => Symbol as Integer;
+    }
+
+    private class ConditionalExpression : IArithmeticExpression
+    {
+        private readonly Comparison Comparison;
+        private readonly IArithmeticExpression TrueValue;
+        private readonly IArithmeticExpression FalseValue;
+
+        public ConditionalExpression(Comparison comparison, IArithmeticExpression trueValue, IArithmeticExpression falseValue)
+        {
+            Comparison = comparison;
+            TrueValue = trueValue;
+            FalseValue = falseValue;
+        }
+
+        public void AssignTo(Variable variable, SimpleActionList actions)
+        {
+            var comparison = Comparison.Simplify(actions, true);
+            if (comparison.Symbol == null)
+            {
+                (comparison.Op == ComparisonOp.True ? TrueValue : FalseValue).AssignTo(variable, actions);
+                return;
+            }
+
+            var trueValue = TrueValue.ToSymbol(actions);
+            var falseValue = FalseValue.ToSymbol(actions);
+            if (comparison.Op == ComparisonOp.Le)
+                (trueValue, falseValue) = (falseValue, trueValue);
+
+            actions.AddConditionalAssignment(new(variable, comparison.Symbol, trueValue, falseValue));
+        }
+
+        public ISymbol ToSymbol(SimpleActionList actions)
+        {
+            var variable = Compiler.VariableAllocator.New();
+            AssignTo(variable, actions);
+            return new VariableSymbol(variable);
         }
     }
 }

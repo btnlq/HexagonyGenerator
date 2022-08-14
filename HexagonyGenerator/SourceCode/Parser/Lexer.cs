@@ -40,9 +40,6 @@ class Lexer
             int column = reader.Column;
             reader.Read();
 
-            if (Rune.IsWhiteSpace(current))
-                continue;
-
             TokenType type = TokenType.Invalid;
 
             switch (current.Value)

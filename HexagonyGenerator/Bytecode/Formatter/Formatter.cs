@@ -63,7 +63,7 @@ class Formatter
             var modifiableSymbol = (ModifiableSymbol)symbol;
             foreach (var modifier in modifiableSymbol.ModifiersReverse)
                 _sb.Append(_modifierPrefix[(int)modifier]);
-            switch (symbol)
+            switch (modifiableSymbol)
             {
                 case VariableSymbol variable:
                     AppendVariable(variable.Variable);
@@ -109,7 +109,7 @@ class Formatter
                 {
                     case Assignment assignment:
                         AppendVariable(assignment.Dest);
-                        if (assignment.Left is VariableSymbol left && assignment.Dest.Location == left.Variable.Location)
+                        if (assignment.Left is VariableSymbol left && assignment.Dest.Is(left.Variable))
                         {
                             if (assignment.Right != null && left.ModifiersCount == 0)
                             {
@@ -135,6 +135,15 @@ class Formatter
                             _sb.Append(' ');
                             AppendSymbol(assignment.Right);
                         }
+                        break;
+                    case ConditionalAssignment assignment:
+                        AppendVariable(assignment.Dest);
+                        _sb.Append(" = ");
+                        AppendSymbol(assignment.ConditionSymbol);
+                        _sb.Append(" > 0 ? ");
+                        AppendSymbol(assignment.TrueValue);
+                        _sb.Append(" : ");
+                        AppendSymbol(assignment.FalseValue);
                         break;
                     case Writing writing:
                         _sb.Append(writing.Type == VariableType.Int ?

@@ -71,6 +71,19 @@ if (c < 0)
   exit; // terminate program
 
 /*
+  Conditional expressions
+*/
+
+x = if (y > 0, y, -y); // x = abs(y)
+// The first argument is a condition, the other arguments ("branches") are arbitrary arithmetic expressions.
+// The condition must be an inequality between two arbitrary arithmetic expressions,
+// i.e. `==`, `!=`, `&&`, '||', '!' operators are not supported.
+// Both branches are always evaluated:
+x = if (y > 10, read, -read); // reads 2 numbers
+// A conditional expression can be used anywhere a number is expected:
+write(if (c < 32, '.', c));
+
+/*
   Labeled loops
 */
 
@@ -90,7 +103,8 @@ and uses these commands to get `-1` and `0` values.
 
 Generated hexagon consists of "procedures", each procedure requires at least 3 columns.
 Each condition (`if`, `for`, `while`) adds 1 or 2 more procedures.
-So a large number of `if-else` results in a large hexagon.
+So a large number of `if-else` results in a large hexagon.  
+In contrast, conditional expressions do not create procedures.
 
 A single procedure program (i.e. a program without control flow statements)
 is transpiled using another algorithm into a smaller Hexagony.

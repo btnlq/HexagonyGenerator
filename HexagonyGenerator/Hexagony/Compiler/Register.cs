@@ -23,11 +23,12 @@ struct Register
 
     public Edge Left => new(IsDown ? _index - 1 : _index + 1);
     public Edge Right => new(IsDown ? _index + 1 : _index - 1);
+    public Edge Neighbour(int sign) => new(IsDown ? _index + sign : _index - sign);
     public Edge Temp => new(_index - 1);
 
-    // < 0 - left
-    // = 0 - both
-    // > 0 - right
+    // -1 - left
+    //  0 - both
+    //  1 - right
     public int ClosestNeighbourTo(Bytecode.Variable variable)
         => (IsDown ? 1 : -1) * Math.Sign(new Register(variable)._index - _index);
 }

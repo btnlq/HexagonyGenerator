@@ -58,6 +58,17 @@ class VariableAllocator
                     _index++;
                     break;
                 }
+                case SimpleAction<Bytecode.ConditionalAssignment> action:
+                {
+                    var assignment = action.Action;
+                    TryPut(assignment.ConditionSymbol);
+                    TryPut(assignment.TrueValue);
+                    TryPut(assignment.FalseValue);
+                    _index++;
+                    Put(assignment.Dest);
+                    _index++;
+                    break;
+                }
                 case SimpleAction<Bytecode.Writing> action:
                 {
                     TryPut(action.Action.Symbol);

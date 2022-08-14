@@ -1,7 +1,4 @@
 ﻿namespace HexagonyGenerator.SourceCode;
-
-using Bytecode;
-
 interface IBooleanExpression
 {
     IEnumerable<IStatement> ToStatement(Block? trueBlock, Block? falseBlock);
@@ -87,105 +84,11 @@ static class BooleanExpression
 
         public IEnumerable<IStatement> ToStatement(Block? trueBlock, Block? falseBlock)
         {
-            return new ConditionBuilder(trueBlock, falseBlock).ToStatement(Comparison);
-        }
-
-        private struct ConditionBuilder
-        {
-            private readonly SimpleActionList Actions = new();
-            private readonly Block? TrueBlock;
-            private readonly Block? FalseBlock;
-
-            public ConditionBuilder(Block? trueBlock, Block? falseBlock)
-            {
-                TrueBlock = trueBlock;
-                FalseBlock = falseBlock;
-            }
-
-            private IEnumerable<IStatement> Build(ModifiableSymbol symbol, ComparisonOp op) =>
-                Actions.Statements.Append(new Conditional(symbol, op, TrueBlock, FalseBlock));
-
-            private static bool Bad(ComparisonOp op) => op == ComparisonOp.Ge || op == ComparisonOp.Lt;
-
-            private IEnumerable<IStatement>? TryBuild(ModifiableSymbol symbol, ComparisonOp op, Integer integer)
-            {
-                if (Value.Abs(integer.Value) > 2)
-                    return null;
-
-                int value = (int)integer.Value;
-
-                if (value > 0)
-                {
-                    if (op == ComparisonOp.Ge || op == ComparisonOp.Lt)
-                    {
-                        value--;
-                        op ^= ComparisonOp.Eq;
-                    }
-                }
-                else if (value < 0)
-                {
-                    if (op == ComparisonOp.Gt || op == ComparisonOp.Le)
-                    {
-                        value++;
-                        op ^= ComparisonOp.Eq;
-                    }
-                }
-
-                if (value == 1)
-                    Modifier.Decrement(symbol);
-                else if (value == -1)
-                    Modifier.Increment(symbol);
-                else if (value != 0)
-                    return null;
-
-                if (symbol.ModifiersCount > 0 && Bad(op))
-                {
-                    Modifier.Negate(symbol);
-                    op = op.Reverse();
-                }
-
-                return Build(symbol, op);
-            }
-
-            private IEnumerable<IStatement> Build(ISymbol left, ComparisonOp op, ISymbol right)
-            {
-                if (Bad(op))
-                {
-                    (left, right) = (right, left);
-                    op = op.Reverse();
-                }
-
-                var variable = Compiler.VariableAllocator.New();
-                Actions.AddAssignment(new Assignment(variable, left, BinOp.Sub, right));
-                return Build(new VariableSymbol(variable), op);
-            }
-
-            public IEnumerable<IStatement> ToStatement(Comparison comparison)
-            {
-                var left = comparison.Left.ToSymbol(Actions);
-                var right = comparison.Right.ToSymbol(Actions);
-
-                IEnumerable<IStatement>? statements = null;
-
-                if (left is Integer leftValue)
-                {
-                    if (right is Integer rightValue)
-                    {
-                        int sign = leftValue.Value.CompareTo(rightValue.Value);
-                        bool result = comparison.Op.Has(sign);
-                        statements = (result ? TrueBlock : FalseBlock) ?? Enumerable.Empty<IStatement>();
-                    }
-                    else
-                        statements = TryBuild((ModifiableSymbol)right, comparison.Op.Reverse(), leftValue);
-                }
-                else
-                {
-                    if (right is Integer rightValue)
-                        statements = TryBuild((ModifiableSymbol)left, comparison.Op, rightValue);
-                }
-
-                return statements ?? Build(left, comparison.Op, right);
-            }
+            SimpleActionList actions = new();
+            var comparison = Comparison.Simplify(actions, false);
+            if (comparison.Symbol == null)
+                return (comparison.Op == ComparisonOp.True ? trueBlock : falseBlock) ?? Enumerable.Empty<IStatement>();
+            return actions.Statements.Append(new Conditional(comparison.Symbol, comparison.Op, trueBlock, falseBlock));
         }
     }
 }

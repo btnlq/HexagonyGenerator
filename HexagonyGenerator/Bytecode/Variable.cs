@@ -8,4 +8,6 @@ class Variable
     {
         Location = location;
     }
+
+    public bool Is(Variable other) => Location == other.Location;
 }

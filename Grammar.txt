@@ -1,0 +1,51 @@
+### Lexer
+
+identifier ::= (System.Text.Rune.IsLetter | '_') (System.Text.Rune.IsLetterOrDigit | '_')*
+character ::= [^\0\n\r\\] | '\\' ['"0abfnrtv]
+string ::= '"' character* '"'
+integer ::= [0-9]+ | '0b' [01]+ | '0o' [0-7]+ | '0x' [0-9a-fA-F]+ | '\'' character '\''
+
+### Parser (Python grammar notation)
+
+variable: identifier
+label: identifier
+
+symbol: 'read' | 'get' | variable | integer
+
+# arithmetic expression
+sum: (term ('+' | '-'))* term
+term: (factor ('*' | '/' | '%'))* factor
+factor: '-'* power
+power: primary ('**' factor)?
+primary: symbol | '(' sum ')' | array | conditional_expr
+
+array: 'array' '(' sum ',' '{' sum (',' sum)* '}' ')'
+conditional_expr: 'if' '(' sum ('>' | '>=' | '<' | '<=') sum ',' sum ',' sum ')'
+
+# boolean expression
+or_expr: (and_expr '||')* and_expr
+and_expr: (not_expr '&&')* not_expr
+not_expr: '!' '(' or_expr ')' | comparison
+comparison: sum ('>' | '>=' | '<' | '<=' | '==' | '!=') sum
+
+statement:
+    | 'if' '(' or_expr ')' block ('else' block)?
+    | 'while' label? '(' or_expr ')' block 
+    | 'for' label? '(' assignment? ';' or_expr? ';' assignment? ')' block 
+    | ('break' | 'continue') label? ';'
+    | 'exit' ';'
+    | ('write' | 'writeln') '(' write_arg (',' write_arg)* ')' ';'
+    | 'writeln' '(' ')' ';'
+    | 'put' '(' sum (',' sum)* ')' ';'
+    | ('read' | 'get') ';'
+    | assignment ';'
+assignment:
+    | variable ('=' | '+=' | '-=' | '*=' | '/=' | '%=') sum
+    | variable ('++' | '--')
+write_arg: sum | string
+
+block:
+    | statement
+    | '{' statement* '}'
+
+program: statement*
